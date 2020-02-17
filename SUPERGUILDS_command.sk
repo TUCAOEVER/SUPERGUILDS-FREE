@@ -1,0 +1,1071 @@
+options:
+    aliases: g, sg, guild, 公会
+
+command /sgadmin [<text>] [<text>] [<text>] [<text>] [<number>]:
+    trigger:
+        player doesn't have permission "guilds.admin":
+            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+            stop
+        if arg 1 is "region":
+            if arg 2 is "allow" or "disallow":
+                if arg 3 is set:
+                    set {_region} to arg 3 parsed as region
+                    if {_region} is set:
+                        if arg 2 is "allow":
+                            SG_writeFile("WGRegions.%{_region}%", "true", "regions")
+                            set {_msg} to {SG::Messages::Region_Allowed}
+                            replace all "{REGION}" with arg 3 in {_msg}
+                            send "%{SG::Messages::Prefix}% %{_msg}%" to player  
+                        else if arg 2 is "disallow":
+                            SG_valueDeleteAPI("WGRegions", "%{_region}%", "regions")
+                            set {_msg} to {SG::Messages::Region_Disallowed}
+                            replace all "{REGION}" with arg 3 in {_msg}
+                            send "%{SG::Messages::Prefix}% %{_msg}%" to player  
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::No_Region}%" to player
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::Enter_Region_Name}%" to player
+            else if arg 2 is "list":
+                set {_region::*} to SG_yamlList("WGRegions", "regions")
+                if size of {_region::*} is greater than 0:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::Region_List}%" to player
+                    send ""
+                    loop {_region::*}:
+                        send "&f● %loop-value%" to player
+                else:                               
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::No_Region_Found}%" to player
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::Allow_Or_Disallow}%" to player
+        else if arg 1 is "resource":
+            if arg 2 is set:
+                set {_pGuild} to arg-2 to all lower case
+                if file "plugins/SUPERGUILDS/guilds/%{_pGuild}%.yml" exists:
+                    if arg 3 is "Wood" or "Stone" or "Iron" or "Gold" or "Diamond" or "Wool":
+                        set {_num} to arg-5
+                        if {_num} is set:
+                            if {_num} is greater than 0:
+                                set {_donatedType} to arg-3 to all lower case
+                                set {_donatedType} to 1st char in each word of "%{_donatedType}%" to caps
+                                set {_aname} to SG_checkFile("Datas.Name", "guilds/%{_pGuild}%")
+                                arg 4 is not "add" or "remove" or "set":
+                                    send "%{SG::Messages::Prefix}% %{SG::Messages::Resource_Give_Usage}%" to player
+                                    stop
+                                if arg 4 is "add":
+                                    set {_currentR} to SG_checkFile("Datas.Resources.%{_donatedType}%.Has", "guilds/%{_pGuild}%") parsed as integer
+                                    set {_maxR} to SG_checkFile("Datas.Resources.%{_donatedType}%.Max", "guilds/%{_pGuild}%") parsed as integer
+                                    set {_newR} to {_currentR}+{_num}   
+                                    {_newR} is greater than {_maxR}:
+                                        SG_writeFile("Datas.Resources.%{_donatedType}%.Max", "%{_newR}%", "guilds/%{_pGuild}%")
+                                    SG_valueAddAPI("Datas.Resources.%{_donatedType}%.Has", {_num}, "guilds/%{_pGuild}%")
+                                    set {_msg} to {SG::Messages::Resource_Give_Admin}
+                                else if arg 4 is "remove":
+                                    SG_valueRemoveAPI("Datas.Resources.%{_donatedType}%.Has", {_num}, "guilds/%{_pGuild}%")
+                                    set {_msg} to {SG::Messages::Resource_Remove_Admin}
+                                else if arg 4 is "set": 
+                                    set {_maxR} to SG_checkFile("Datas.Resources.%{_donatedType}%.Max", "guilds/%{_pGuild}%") parsed as integer
+                                    {_num} is greater than {_maxR}:
+                                        SG_writeFile("Datas.Resources.%{_donatedType}%.Max", "%{_num}%", "guilds/%{_pGuild}%")
+                                    SG_writeFile("Datas.Resources.%{_donatedType}%.Has", "%{_num}%", "guilds/%{_pGuild}%")
+                                    set {_msg} to {SG::Messages::Resource_Set_Admin}
+                                replace all "{GUILD}" with "%{_aname}%" in {_msg}
+                                replace all "{RESOURCE}" with "%{SG::Messages::Resource_%{_donatedType}%}%" in {_msg}
+                                replace all "{NUMBER}" with "%{_num}%" in {_msg}    
+                                send "%{SG::Messages::Prefix}% %{_msg}%" to player
+                            else:
+                                send "%{SG::Messages::Prefix}% %{SG::Messages::Donations_0}%" to player
+                        else:
+                            send "%{SG::Messages::Prefix}% %{SG::Messages::Resource_Give_Usage}%" to player 
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::Resource_Give_Usage}%" to player 
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::No_Guild_Like_This}%" to player
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::Enter_Guild_Name}%" to player
+        else if arg 1 is "fillresources":
+            if arg 2 is set:
+                set {_pGuild} to arg-2 to all lower case
+                if file "plugins/SUPERGUILDS/guilds/%{_pGuild}%.yml" exists:
+                    
+                    loop "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool":
+                        set {_maxR} to SG_checkFile("Datas.Resources.%loop-value%.Max", "guilds/%{_pGuild}%")
+                        SG_writeFile("Datas.Resources.%loop-value%.Has", "%{_maxR}%", "guilds/%{_pGuild}%")
+                    set {_t} to SG_getTime(year, month, day, hour, minute, second, "hash") 
+                    SG_writeFile("Datas.Worker-Time", "%{_t}%", "guilds/%{_pGuild}%")   
+                        
+                        
+                    set {_msg} to {SG::Messages::Resource_Fill_Admin}
+                    set {_aname} to SG_checkFile("Datas.Name", "guilds/%{_pGuild}%")
+                    replace all "{GUILD}" with "%{_aname}%" in {_msg}
+                    send "%{SG::Messages::Prefix}% %{_msg}%" to player  
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::No_Guild_Like_This}%" to player
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::Enter_Guild_Name}%" to player            
+        else:
+            send "%{SG::Messages::Prefix}% &e/sgadmin [region, resource, fillresources]"
+command /superguilds [<text>] [<text>] [<text>] [<text>] [<integer>]:
+    aliases: {@aliases}
+    executable by: players
+    trigger:
+        if arg 1 is not set:
+            if player has permission "guilds.*" or "guilds.player": 
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is not "*":
+                    SG_guildManagement(player)
+                else:
+                    SG_guildSelectGUI(player)
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "help" or "帮助":
+            if arg 2 is not set:
+                execute player command "/g help 1"
+                stop
+            else:
+                if arg 2 is "1" or "2" or "3" or "4" or "5":
+                    set {_page} to arg 2 parsed as integer
+                else:
+                    execute player command "/g help 1"
+                    stop
+            send "&8&m--------------(&r &6&l公会 GUILDS &8&m)--------------" to player
+            loop 8 times:
+                if {SG::Messages::Help_Pages_%{_page}%::Line_%loop-number%} is set:
+                    send "   %{SG::Messages::Help_Pages_%{_page}%::Line_%loop-number%}%" to player
+            if {_page} is less than 4:
+                set {_msg} to {SG::Messages::Next_Page}
+                replace all "{NEXT}" with "%{_page}+1%" in {_msg}
+                send "%{_msg}%" to player
+            else:
+                send "&8&m--------------------------------------------" to player
+        else if arg 1 is "create" or "创建":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.create":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is "*":
+                    if arg 2 is set:
+                        SG_charControlOne(arg-2) is false:
+                            send "%{SG::Messages::Prefix}% %{SG::Messages::Char_Error}%"
+                            stop
+                        set {_downText} to arg-2 to all lower case
+                        if file "plugins/SUPERGUILDS/guilds/%{_downText}%.yml" doesn't exists:
+                            set {_min} to SG_checkFile("Guild-Management.Min-Name-Length", "config") parsed as number
+                            set {_max} to SG_checkFile("Guild-Management.Max-Name-Length", "config") parsed as number
+                            if length of {_downText} is between {_min} and {_max}:
+                                if block under player isn't lava, air or water:
+                                    set {_disabled::*} to SG_checkFile("General.Create-Disabled-Worlds", "config") split at ","
+                                    size of {_disabled::*} > 0:
+                                        loop size of {_disabled::*} times:
+                                            "%{_disabled::%loop-number%}%" is "%world of player%"
+                                            send "%{SG::Messages::Prefix}% %{SG::Messages::Create_Guild_Disabled_World}%" to player
+                                            stop    
+                                    SG_checkFile("General.Races.Enabled", "config") is "*" or "true":
+                                        set {_race} to SG_checkFile("Players.Race", "playerdata/%uuid of player%")
+                                        {_race} is "*" or "0":
+                                            send "%{SG::Messages::Prefix}% %{SG::Messages::Select_Race}%" to player
+                                            stop
+                                    set {_ph.1} to "%number of gold ingot in player's inventory%" parsed as number
+                                    set {_cn.1} to SG_checkFile("Guild-Management.Required-Gold-To-Create", "config") parsed as integer
+                                    set {_ph.2} to balance of player
+                                    set {_cn.2} to SG_checkFile("Guild-Management.Required-Money-To-Create", "config") parsed as integer
+                                    set {_msg.1} to {SG::Messages::Dont_Have_Gold_To_Create}
+                                    set {_msg.2} to {SG::Messages::Dont_Have_Money_To_Create}
+                                    loop 2 times:
+                                        {_ph.%loop-number%} < {_cn.%loop-number%}
+                                        replace all "{NUMBER}" with "%{_cn.%loop-number%}%" in {_msg.%loop-number%}
+                                        send "%{SG::Messages::Prefix}% %{_msg.%loop-number%}%" to player
+                                        stop
+                                    remove {_cn.1} of gold ingot from player's inventory
+                                    remove {_cn.2} from player's balance
+                                    SG_writeFile("Players.Guild-Name", "%{_downText}%", "playerdata/%uuid of player%")
+                                    set {_startSlot} to SG_checkFile("Guild-Management.Start-MaxSlot", "config") parsed as integer
+                                    set {_startClaim} to SG_checkFile("Guild-Management.Start-MaxClaim", "config") parsed as integer
+                                    set {_saatYaz2} to SG_getTime(year, month, day+1, hour, minute, second, "hash")
+                                    #
+                                    set {_ploc} to location of player
+                                    set {_pchunk} to chunk at player
+                                    set {_t} to SG_getTime(year, month, day, hour, minute, second, "hash")   
+                                    SG_writeFile("Datas.Name", arg-2, "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Join-Status", "1", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Creator", "%player%", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Create-Time.Normal", "%now%", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Create-Time.Hash", "%{_t}%", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Last-Active-Time.Normal", "%now%", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Last-Active-Time.Hash", "%{_t}%", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Leader", "%player%", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Emblem", "8;8;7;7;7;7;8;8;8;7;7;7;7;7;7;8;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;7;8;7;7;7;7;7;7;8;8;8;7;7;7;7;8;8;f", "guilds/%{_downText}%")
+                                    loop "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool":
+                                        set {_max} to SG_checkFile("Guild-Management.Resources.%loop-value%.Start-Max", "config") parsed as number
+                                        set {_start} to SG_checkFile("Guild-Management.Resources.%loop-value%.Start-Amount", "config") parsed as number            
+                                        SG_writeFile("Datas.Resources.%loop-value%.Has", "%{_start}%", "guilds/%{_downText}%")
+                                        SG_writeFile("Datas.Resources.%loop-value%.Max", "%{_max}%", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Division", "0", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.War-Points", "1", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Max-Slot", "%{_startSlot}%", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Max-Claim", "%{_startClaim}%", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Buildings.Townhall.Level", "0", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Buildings.Barrack.Level", "0", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Buildings.Storage.Level", "0", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Buildings.Alchemy.Level", "0", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Buildings.Townhall.Status", "0", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Buildings.Barrack.Status", "0", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Buildings.Storage.Status", "0", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Buildings.Alchemy.Status", "0", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.War-Kills", "0", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.War-Deaths", "0", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.War-Wins", "0", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.War-Loses", "0", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.War-Status", "*", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.War-Shield", "%{_saatYaz2}%", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Claimed-Land", "0", "guilds/%{_downText}%") 
+                                    SG_writeFile("Datas.Players.%uuid of player%.Username", "%player%", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Players.%uuid of player%.Rank", "Leader", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Players.%uuid of player%.Join-Date", "%now%", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Players.%uuid of player%.War-Kills", "0", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Players.%uuid of player%.War-Deaths", "0", "guilds/%{_downText}%")
+                                    loop "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool":
+                                        SG_writeFile("Datas.Players.%uuid of player%.Donated-Resource.%loop-value%", "0", "guilds/%{_downText}%")  
+                                    set {_x} to x coordinate of player
+                                    set {_y} to y coordinate of player
+                                    set {_z} to z coordinate of player
+                                    set {_world} to world of player
+                                    SG_writeFile("Datas.Home-Location", "%player's x coordinate%;%player's y coordinate%;%player's z coordinate%;%world of player%", "guilds/%{_downText}%")
+                                    SG_writeFile("Datas.Center-Location", "%player's x coordinate%;%player's y coordinate%;%player's z coordinate%;%world of player%", "guilds/%{_downText}%")
+                                    {_Claims} is "true":
+                                        set {_StartW} to SG_checkFile("Guild-Management.Start-With-Claim", "config")
+                                        {_StartW} is "true":
+                                            SG_writeFile("Regions", "%{_downText}%", "chunks/%chunk at location of player%")
+                                            SG_writeFile("Datas.Claimed-Land", "1", "guilds/%{_downText}%")  
+                                            SG_writeFile("Datas.Claims.%chunk at player%", "%player's x coordinate%;%player's y coordinate%;%player's z coordinate%;%world of player%;%{SG::Messages::Creation_Point}%", "guilds/%{_downText}%")
+                                    set {_message} to "%{SG::Messages::Created_Guild}%"
+                                    replace all "{GUILD}" with arg 2 in {_message}
+                                    replace all "{PLAYER}" with name of player in {_message}
+                                    broadcast "%{SG::Messages::Prefix}% %{_message}%"
+                                    SG_guildManagement(player)
+                                    set {_executable} to SG_checkFile("General.Executable-Commands.On-Guild-Create", "config")
+                                    {_executable} is not "*"
+                                    replace all "{PLAYER}" with "%player%" in {_executable}
+                                    replace all "{GUILD}" with arg 2 in {_executable}
+                                    replace all "{X}" with "%{_x}%" in {_executable}
+                                    replace all "{Y}" with "%{_y}%" in {_executable}
+                                    replace all "{Z}" with "%{_z}%" in {_executable}
+                                    replace all "{WORLD}" with "%{_world}%" in {_executable}
+                                    execute console command "%{_executable}%"
+                                else:
+                                    send "%{SG::Messages::Prefix}% %{SG::Messages::Land_Error}%" to player
+                            else:
+                                send "%{SG::Messages::Prefix}% %{SG::Messages::Guild_Name_Length}%" to player
+                        else:
+                            send "%{SG::Messages::Prefix}% %{SG::Messages::That_Guild_Exists}%" to player
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::Enter_Guild_Name}%" to player
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Have_Guild}%" to player
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "disband" or "解散":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.remove" or "guilds.disband":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is not "*":
+                    if SG_rankCheck(uuid of player, "Disband") is true:
+                        set {_remove} to SG_checkFile("Players.Remove-Command-Confirm", "playerdata/%uuid of player%")
+                        if {_remove} is "*":
+                            send "%{SG::Messages::Prefix}% %{SG::Messages::Remove_Confirm}%" to player
+                            SG_writeFile("Players.Remove-Command-Confirm", "true", "playerdata/%uuid of player%")                              
+                        else:
+                            send "%{SG::Messages::Prefix}% %{SG::Messages::Guild_Removed}%" to player
+                            SG_disbandGuild({_pGuild})
+                            SG_writeFile("Players.Remove-Command-Confirm", "*", "playerdata/%uuid of player%")     
+                            set {_executable} to SG_checkFile("General.Executable-Commands.On-Guild-Disband", "config")
+                            {_executable} is not "*"
+                            replace all "{PLAYER}" with "%player%" in {_executable}
+                            replace all "{GUILD}" with "%{_pGuild}%" in {_executable}
+                            replace all "{X}" with "%x coordinate of player%" in {_executable}
+                            replace all "{Y}" with "%y coordinate of player%" in {_executable}
+                            replace all "{Z}" with "%z coordinate of player%" in {_executable}
+                            replace all "{WORLD}" with "%world of player%" in {_executable}
+                            execute console command "%{_executable}%"
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::No_Guild_Perm}%" to player
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "home" or "主城":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.home":
+                if SG_checkFile("General.Homes", "config") is "true" or "*":
+                    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                    if {_pGuild} is not "*":               
+                        set {_location::*} to SG_checkFile("Datas.Home-Location", "guilds/%{_pGuild}%") split at ";"
+                        set {_x} to {_location::1} parsed as number
+                        set {_y} to {_location::2} parsed as number
+                        set {_z} to {_location::3} parsed as number
+                        set {_w} to {_location::4} parsed as world
+                        SG_teleporterAPI(player, {_x}, {_y}, {_z}, {_w})
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::Option_Disabled}%" to player
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "sethome" or "设置主城":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.sethome":
+                if SG_checkFile("General.Homes", "config") is "true" or "*":
+                    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                    if {_pGuild} is not "*":
+                        set {_r} to SG_checkFile("Datas.Players.%uuid of player%.Rank", "guilds/%{_pGuild}%")
+                        if SG_rankCheck(uuid of player, "Sethome") is true:
+                            if block under player isn't lava or water or air:
+                                if SG_checkFile("Regions", "chunks/%chunk at location of player%") is {_pGuild}:
+                                    set {_ploc} to player's location
+                                    set {_c} to chunk of player
+                                    set {_loc} to block 1 under block 7 left block 7 forward block at 0, player's y-coord, 0 in {_c}
+                                    SG_writeFile("Datas.Home-Location", "%{_loc}'s x coordinate%;%{_loc}'s y coordinate%;%{_loc}'s z coordinate%;%world of player%", "guilds/%{_pGuild}%")
+                                    send "%{SG::Messages::Prefix}% %{SG::Messages::Done_Set_Home}%" to player
+                                    #
+                                    set {_x1} to rounded down (1/16 * {_ploc}'s x coordinate)
+                                    set {_x1} to {_x1} * 16
+                                    set {_y1} to ({_ploc}'s y-coordinate - 1)
+                                    set {_z1} to rounded down (1/16 * {_ploc}'s z coordinate)
+                                    set {_z1} to {_z1} * 16 
+                                    set {_middle} to location of block 1 under block 7 left block 7 forward block at 0, y coordinate of player, 0 in {_c}
+                                    set {_centerx} to x coordinate of {_middle}
+                                    set {_centery} to y coordinate of {_middle} 
+                                    set {_centerz} to z coordinate of {_middle} 
+                                    set {_centerw} to world of {_middle}    
+                                    set {_pos1} to top northwest corner of {_c}
+                                    set {_pos2} to bottom southeast corner of {_c}
+                                    set y-coord of {_pos1} to {_centery}
+                                    set y-coord of {_pos2} to {_centery}
+                                    #
+                                    SG_writeFile("Datas.Buildings.Townhall.Schematic.Main-Chunk", "%{_c}%", "guilds/%{_pGuild}%")
+                                    SG_writeFile("Datas.Buildings.Townhall.Schematic.Pos-1", "%{_pos1}'s x coordinate%;%{_pos1}'s y coordinate%;%{_pos1}'s z coordinate%;%world of player%", "guilds/%{_pGuild}%")
+                                    SG_writeFile("Datas.Buildings.Townhall.Schematic.Pos-2", "%{_pos2}'s x coordinate%;%{_pos2}'s y coordinate%;%{_pos2}'s z coordinate%;%world of player%", "guilds/%{_pGuild}%")
+                                    SG_writeFile("Datas.Buildings.Townhall.Schematic.Center", "%{_centerx}%;%{_centery}%;%{_centerz}%;%{_centerw}%", "guilds/%{_pGuild}%")
+                                else:
+                                    send "%{SG::Messages::Prefix}% %{SG::Messages::Chunk_Error_You}%" to player
+                            else:
+                                send "%{SG::Messages::Prefix}% %{SG::Messages::Land_Error}%" to player
+                        else:
+                            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to player
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::Option_Disabled}%" to player
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "claim" or "占领":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.claim":
+                if SG_checkFile("General.Claims", "config") is "true" or "*":
+                    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                    if {_pGuild} is not "*":
+                        if SG_rankCheck(uuid of player, "Claim") is true:
+                            set {_limit} to SG_checkFile("Datas.Max-Claim", "guilds/%{_pGuild}%") parsed as number
+                            set {_gold} to SG_checkFile("Datas.Resources.Gold.Has", "guilds/%{_pGuild}%") parsed as number
+                            set {_claimed} to SG_checkFile("Datas.Claimed-Land", "guilds/%{_pGuild}%") parsed as number
+                            set {_reqDefault} to SG_checkFile("Guild-Management.Claim-Gold-Cost", "config") parsed as number
+                            set {_reqIncrease} to SG_checkFile("Guild-Management.Claim-Gold-Increase", "config") parsed as number
+                            set {_req} to rounded down ({_reqDefault} + ({_reqIncrease} * {_claimed}))
+                            # 最大领地数量限制
+                            {_claimed} is greater or equal to {_limit}:
+                                send "%{SG::Messages::Prefix}% %{SG::Messages::Claim_Limit}%" to player
+                                stop
+                            # 金锭数量判断
+                            if {_gold} is greater or equal to {_req}:
+                                # WG判断
+                                set {_wg} to SG_checkFile("General.WorldGuard-Support", "config")
+                                {_wg} is "true":
+                                    y coordinate of player is greater than 255:
+                                        send "%{SG::Messages::Prefix}% %{SG::Messages::Option_Disabled}%" to player
+                                        stop    
+                                    player cannot build at player's location
+                                    send "%{SG::Messages::Prefix}% %{SG::Messages::WorldGuard_Error}%" to player
+                                    stop
+                                # 占领禁用世界
+                                set {_disabled::*} to SG_checkFile("General.Claim-Disabled-Worlds", "config") split at ","
+                                size of {_disabled::*} > 0:
+                                    loop size of {_disabled::*} times:
+                                        "%{_disabled::%loop-number%}%" is "%world of player%"
+                                        send "%{SG::Messages::Prefix}% %{SG::Messages::Option_Disabled}%" to player
+                                        stop
+                                # 同盟判定
+                                set {_allies::*} to SG_yamlList("Datas.Allies", "guilds/%{_pGuild}%")
+                                {_allies::*} contains "%{_chunk}%":
+                                    send "%{SG::Messages::Prefix}% %{SG::Messages::Cannot_Claim_Allies}%" to player
+                                    stop
+                                # 区块所属公会
+                                set {_chunk} to SG_checkFile("Regions", "chunks/%chunk at location of player%") 
+                                {_chunk} is "%{_pGuild}%":
+                                    send "%{SG::Messages::Prefix}% %{SG::Messages::Claim_Error}%" to player
+                                    stop
+                                # 已被占领的区块
+                                {_chunk} is not "*":
+                                    if SG_checkFile("Guild-Management.Capture-Land-From-Guilds", "config") is "true" or "*":
+                                        set {_levelBy} to SG_checkFile("Datas.Division", "guilds/%{_pGuild}%") parsed as number
+                                        set {_levelOwn} to SG_checkFile("Datas.Division", "guilds/%{_chunk}%") parsed as number
+                                        {_levelBy} > {_levelOwn}:
+                                            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Claim_Level}%" to player
+                                            stop
+
+                                        SG_valueAddAPI("Datas.Claimed-Land", 1, "guilds/%{_pGuild}%")
+                                        SG_valueRemoveAPI("Datas.Claimed-Land", 1, "guilds/%{_chunk}%")
+                                        SG_valueDeleteAPI("Datas.Claims", "%chunk at player%", "guilds/%{_chunk}%") 
+                                        SG_writeFile("Regions", "%{_pGuild}%", "chunks/%chunk at location of player%")
+                                        SG_writeFile("Datas.Claims.%chunk at player%", "%player's x coordinate%;%player's y coordinate%;%player's z coordinate%;%world of player%", "guilds/%{_pGuild}%")
+
+                                        set {_message} to {SG::Messages::Attacking_You}
+                                        replace all "{ATTACKER}" with "%{_pGuild}%" in {_message}
+                                        replace all "{LAND}" with "%location of player%" in {_message}
+                                        SG_guildBroadcast({_chunk}, "%{_message}%")
+
+                                        set {_message} to {SG::Messages::Attacked_Chunk}
+                                        replace all "{OWN}" with "%{_chunk}%" in {_message}
+                                        replace all "{LAND}" with "%location of player%" in {_message}
+                                        SG_guildBroadcast({_pGuild}, "%{_message}%")
+                                        stop
+                                    else:
+                                        set {_msg} to {SG::Messages::You_Cant_Action}
+                                        replace "{BUILD}" with "%{_chunk}%" in {_msg}
+                                        send "%{SG::Messages::Prefix}% %{_msg}%" to player
+                                        stop
+                                # 未被占领的区块
+                                # - 领地是否需要相邻
+                                SG_checkFile("Guild-Management.Adjacent-Chunks-Only", "config") is "true":
+                                    SG_checkFile("Datas.Claimed-Land", "guilds/%{_pGuild}%") parsed as number > 1:
+                                        set {_middle} to block 1 under block 7 left block 7 forward block at 0, y-coord of player, 0 in chunk of player
+                                        set {_chunk1} to chunk at block 9 north {_middle}
+                                        set {_chunk2} to chunk at block 9 west {_middle}
+                                        set {_chunk3} to chunk at block 9 south {_middle}
+                                        set {_chunk4} to chunk at block 9 east {_middle}
+                                        set {_check} to false
+                                        loop 4 times:
+                                            SG_checkFile("Regions", "chunks/%{_chunk%loop-number%}%") is {_pGuild}
+                                            set {_check} to true
+                                        {_check} is not true
+                                        send "%{SG::Messages::Prefix}% %{SG::Messages::Connected_Chunks}%" to player
+                                        stop
+                                
+                                SG_writeFile("Regions", "%{_pGuild}%", "chunks/%chunk at location of player%")
+                                SG_writeFile("Datas.Claims.%chunk at player%", "%player's x coordinate%;%player's y coordinate%;%player's z coordinate%;%world of player%", "guilds/%{_pGuild}%")
+                                SG_valueRemoveAPI("Datas.Resources.Gold.Has", {_req}, "guilds/%{_pGuild}%")
+                                SG_valueAddAPI("Datas.Claimed-Land", 1, "guilds/%{_pGuild}%")
+                                
+                                set {_message} to {SG::Messages::Chunk_Claimed}
+                                replace all "{LAND}" with "%location of player%" in {_message}
+                                SG_guildBroadcast({_pGuild}, {_message})                              
+                                
+                                set {_x} to x coordinate of player
+                                set {_y} to y coordinate of player
+                                set {_z} to z coordinate of player
+                                set {_world} to world of player
+                                SG_chunkMiddle(player, {_x}, {_y}, {_z}, {_world}, "claim")
+                                set {_y} to {_y} + 2
+                                set {_middle} to block 2 above block 7 left block 7 forward block at 0, {_y}, 0 in chunk of player  
+                                set {_upPG} to "%{_pGuild}%" to all upper case
+                                
+                                SG_checkFile("General.Holos", "config") is "true":
+                                    set {_chunktotal} to SG_checkFile("Datas.Claimed-Land", "guilds/%{_pGuild}%")
+                                    set {_msg} to {SG::Messages::Holo_Message_Claim}
+                                    replace all "{GUILD}" with "%{_upPG}%" in {_msg}
+                                    replace all "{CHUNKS}" with "%{_chunktotal}%" in {_msg}
+                                    replace all "{PLAYER}" with "%player%" in {_msg}
+                                    set {_etype} to "ItemStack:GRASS_BLOCK;"
+                                    create hologram "%{_etype}%%{_msg}%" at {_middle} for 6 seconds
+                                
+                                set {_executable} to SG_checkFile("General.Executable-Commands.On-Claim", "config")
+                                {_executable} is not "*"
+                                replace all "{PLAYER}" with "%player%" in {_executable}
+                                replace all "{GUILD}" with "%{_pGuild}%" in {_executable}
+                                replace all "{X}" with "%{_x}%" in {_executable}
+                                replace all "{Y}" with "%{_y}%" in {_executable}
+                                replace all "{Z}" with "%{_z}%" in {_executable}
+                                replace all "{WORLD}" with "%{_world}%" in {_executable}
+                                execute console command "%{_executable}%"
+                            else:
+                                set {_msg} to {SG::Messages::You_Need_More_Resource}
+                                replace all "{RESOURCE}" with "%{SG::Messages::Resource_Gold}%" in {_msg}
+                                replace all "{AMOUNT}" with "%{_req} - {_gold}%" in {_msg}
+                                send "%{SG::Messages::Prefix}% %{_msg}%" to player
+                        else:
+                            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to player
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::Option_Disabled}%" to player
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "unclaim" or "解除占领":  
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.unclaim":
+                if SG_checkFile("General.Claims", "config") is "true" or "*":
+                    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                    if {_pGuild} is not "*":
+                        set {_r} to SG_checkFile("Datas.Players.%uuid of player%.Rank", "guilds/%{_pGuild}%")
+                        if SG_rankCheck(uuid of player, "Claim") is true:
+                            set {_chunk} to SG_checkFile("Regions", "chunks/%chunk at location of player%")                            
+                            if {_chunk} is "%{_pGuild}%":
+                                add "Townhall" and "Barrack" and "Storage" and "Alchemy" to {_builds::*}
+                                loop {_builds::*}:
+                                    clear {_buildMainChunk}
+                                    set {_buildMainChunk} to SG_checkFile("Datas.%loop-value%.Schematic.Main-Chunk", "guilds/%{_pGuild}%")
+                                    {_buildMainChunk} is "%chunk of player%"
+                                    SG_schematicAPI("%loop-value%", "1", "%{_pGuild}%")
+                                    holo object "%{_pGuild}%_%loop-value%" exists:
+                                        delete holo object "%{_pGuild}%_%loop-value%"
+                                    SG_writeFile("Datas.Buildings.%loop-value%.Schematic.Main-Chunk", "*", "guilds/%{_pGuild}%")
+                                    SG_writeFile("Datas.Buildings.%loop-value%.Schematic.Pos-1", "*", "guilds/%{_pGuild}%")
+                                    SG_writeFile("Datas.Buildings.%loop-value%.Schematic.Pos-2", "*", "guilds/%{_pGuild}%")
+                                    SG_writeFile("Datas.Buildings.%loop-value%.Schematic.Center", "*", "guilds/%{_pGuild}%")
+                                    SG_writeFile("Datas.Buildings.%loop-value%.Level", "0", "guilds/%{_pGuild}%")
+                                    SG_writeFile("Datas.Buildings.%loop-value%.Status", "0", "guilds/%{_pGuild}%")                                    
+                                set {_message} to {SG::Messages::Chunk_Unclaimed}
+                                replace all "{PLAYER}" with "%player%" in {_message}
+                                replace all "{LAND}" with "%location of player%" in {_message}
+                                SG_guildBroadcast({_pGuild}, "%{_message}%")   
+                                set {_back} to SG_checkFile("Guild-Management.Unclaim-Gold-Refund", "config") parsed as number
+                                SG_valueAddAPI("Datas.Resources.Gold.Has", {_back}, "guilds/%{_pGuild}%")
+                                SG_valueRemoveAPI("Datas.Claimed-Land", 1, "guilds/%{_pGuild}%")
+                                delete file "plugins/SUPERGUILDS/chunks/%chunk at location of player%.yml"                      
+                                SG_valueDeleteAPI("Datas.Claims", "%chunk at player%", "guilds/%{_pGuild}%")    
+                                #
+                                set {_x} to x coordinate of player
+                                set {_y} to y coordinate of player
+                                set {_z} to z coordinate of player
+                                set {_world} to world of player
+                                SG_chunkMiddle(player, {_x}, {_y}, {_z}, {_world}, "unclaim")
+                                set {_executable} to SG_checkFile("General.Executable-Commands.On-Unclaim", "config")
+                                {_executable} is not "*"
+                                replace all "{PLAYER}" with "%player%" in {_executable}
+                                replace all "{GUILD}" with "%{_pGuild}%" in {_executable}
+                                replace all "{X}" with "%{_x}%" in {_executable}
+                                replace all "{Y}" with "%{_y}%" in {_executable}
+                                replace all "{Z}" with "%{_z}%" in {_executable}
+                                replace all "{WORLD}" with "%{_world}%" in {_executable}
+                                execute console command "%{_executable}%"
+                            else:
+                                send "%{SG::Messages::Prefix}% %{SG::Messages::Chunk_Error_You}%" to player
+                        else:
+                            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to player
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::Option_Disabled}%" to player
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "kick" or "踢出":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.kick":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is not "*":
+                    set {_r} to SG_checkFile("Datas.Players.%uuid of player%.Rank", "guilds/%{_pGuild}%")
+                    if SG_rankCheck(uuid of player, "Kick") is true:
+                        SG_pageAPI(player, "3", 0)
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to player
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "emblem" or "徽章":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.desc" or "guilds.emblem":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is not "*":
+                    if SG_rankCheck(uuid of player, "Emblem") is true:
+                        if arg 2 is not set:
+                            SG_guildEmblemGUI(player)
+                        else if arg 2 is "Save":
+                            set {_design} to SG_checkFile("Players.Emblem-Design", "playerdata/%uuid of player%")
+                            SG_writeFile("Datas.Emblem", "%{_design}%", "guilds/%{_pGuild}%")
+                            send "%{SG::Messages::Prefix}% %{SG::Messages::Emblem_Saved}%" to player                            
+                            set {_message} to {SG::Messages::Guild_Emblem_Changed}
+                            replace all "{PLAYER}" with "%player%" in {_message}
+                            SG_guildBroadcast({_pGuild}, "%{_message}%")
+                            SG_guildManagement(player)
+                            SG_playSound(player, "ENTITY_ARROW_HIT_PLAYER", 1, 1)
+                        else if arg 2 is "Reset":
+                            set {_design} to "7"
+                            loop 64 times:
+                                set {_design} to "%{_design}%;7"
+                            SG_writeFile("Players.Emblem-Design", "%{_design}%", "playerdata/%uuid of player%")
+                            SG_guildEmblemGUI(player)
+                            SG_playSound(player, "ENTITY_PLAYER_LEVELUP", 1, 1)
+                        else if arg 2 is "Color":
+                            set {_num} to arg 3 parsed as number
+                            if {_num} is between 0 and 15: 
+                                set {_sw::0} to "0"
+                                set {_sw::1} to "1"
+                                set {_sw::2} to "2"
+                                set {_sw::3} to "3"
+                                set {_sw::4} to "4"
+                                set {_sw::5} to "5"
+                                set {_sw::6} to "6"
+                                set {_sw::7} to "7"
+                                set {_sw::8} to "8"
+                                set {_sw::9} to "9"
+                                set {_sw::10} to "a"
+                                set {_sw::11} to "b"
+                                set {_sw::12} to "c"
+                                set {_sw::13} to "d"
+                                set {_sw::14} to "e"
+                                set {_sw::15} to "f"
+                                SG_writeFile("Players.Selected-Color", "%{_sw::%arg 3%}%", "playerdata/%uuid of player%")
+                                SG_guildEmblemGUI(player)
+                                SG_playSound(player, "ENTITY_CHICKEN_EGG", 1, 1)
+                            else:
+                                send "%{SG::Messages::Prefix}% %{SG::Messages::Select_Color}%" to player
+                        else if arg 2 is "Select":
+                            set {_num} to arg-3 parsed as number
+                            if {_num} is set:
+                                {_num} is between 1 and 64
+                                set {_design} to SG_checkFile("Players.Emblem-Design", "playerdata/%uuid of player%")
+                                {_design} is "*":
+                                    set {_design} to "7"
+                                    loop 64 times:
+                                        set {_design} to "%{_design}%;7"
+                                    SG_writeFile("Players.Emblem-Design", "%{_design}%", "playerdata/%uuid of player%")
+                                set {_playercolor} to SG_checkFile("Players.Selected-Color", "playerdata/%uuid of player%")
+                                {_playercolor} is "*":
+                                    set {_playercolor} to "7"
+                                set {_unicodes::*} to {_design} split at ";"
+                                set {_unicodes::%{_num}%} to "%{_playercolor}%"
+                                set {_desc} to ""
+                                loop {_unicodes::*}:
+                                    if {_desc} is not "":
+                                        set {_desc} to "%{_desc}%;%loop-value%"
+                                    else:
+                                        set {_desc} to "%loop-value%"
+                                SG_writeFile("Players.Emblem-Design", "%{_desc}%", "playerdata/%uuid of player%")
+                                SG_guildEmblemGUI(player)
+                                SG_playSound(player, "BLOCK_LEVER_CLICK", 1, 1)
+                            else:
+                                send "%{SG::Messages::Prefix}% %{SG::Messages::Select_Code}%" to player 
+                        else if arg 2 is "Use":
+                            set {_design} to SG_checkFile("Datas.Emblem", "guilds/%{_pGuild}%")
+                            SG_writeFile("Players.Emblem-Design", "%{_design}%", "playerdata/%uuid of player%")    
+                            SG_guildEmblemGUI(player)
+                            SG_playSound(player, "UI_BUTTON_CLICK", 1, 1)
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to player
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "chat" or "聊天":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.chat" or "guilds.c":
+                if SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%") is not "*":
+                    if SG_checkFile("Players.Chat-Enabled", "playerdata/%uuid of player%") is "true":
+                        SG_writeFile("Players.Chat-Enabled", "false", "playerdata/%uuid of player%")
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::Disabled_Chat}%" to player
+                    else:
+                        SG_writeFile("Players.Chat-Enabled", "true", "playerdata/%uuid of player%")
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::Enabled_Chat}%" to player
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "members" or "玩家":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.members":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is not "*":
+                    SG_pageAPI(player, "3", 0)
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "info" or "信息":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.info":
+                if arg 2 is set:
+                    set {_downText} to arg-2 to all lower case
+                    if file "plugins/SUPERGUILDS/guilds/%{_downText}%.yml" exists:
+                        SG_guildInfo(player, {_downText})
+                    else:
+                        set {_p} to arg 2 parsed as player
+                        if {_p} is set:
+                            set {_uuid} to uuid of {_p}
+                            set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+                            if {_pGuild} is not "*":
+                                SG_guildInfo(player, {_pGuild})
+                            else:
+                                send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+                        else:
+                            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Guild_Like_This}%" to player
+                else:
+                    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                    if {_pGuild} is not "*":
+                        SG_guildInfo(player, {_pGuild})
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "stats" or "数据":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.stats":
+                if arg 2 is set:
+                    set {_arg} to arg 2 parsed as offline player
+                    set {_uuid} to uuid of {_arg}
+                    set {_username} to SG_checkFile("Players.Username", "playerdata/%{_uuid}%")
+                    if {_username} is not "*":
+                        SG_playerInfo(player, {_uuid}, 0)
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::No_Player_Like_This}%" to player
+                else:
+                    SG_playerInfo(player, uuid of player, 0)
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "list" or "列表":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.list":
+                SG_pageAPI(player, "0", 0)
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "rank" or "职位":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.rank":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is not "*":
+                    SG_pageAPI(player, "3", 0)
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "buildings" or "建筑":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.buildings":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is not "*":               
+                    if arg 2 is "upgrade":
+                        if arg 3 is "Townhall" or "Barrack" or "Storage" or "Alchemy":
+                            set {_r} to SG_checkFile("Datas.Players.%uuid of player%.Rank", "guilds/%{_pGuild}%")
+                            if SG_rankCheck(uuid of player, "Upgrade") is true:
+                                set {_Type} to arg-3 to all lower case
+                                set {_Type} to 1st char in each word of arg 3 to caps
+                                SG_upgradeBuild(player, {_pGuild}, "%{_Type}%")
+                            else:
+                                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to player
+                        else:
+                            send "%{SG::Messages::Prefix}% %{SG::Messages::Enter_Building_Type}%" to player
+                    else:
+                        SG_buildingsGUI(player)
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "alchemy" or "兵营":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.alchemy":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is not "*":
+                    SG_alchemyGUI(player)
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "vault" or "仓库":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.vault":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is not "*":
+                    SG_guildVault(player)
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "store" or "资源":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.store" or "guilds.storage":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is not "*":
+                    SG_storeGUI(player)
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "join" or "加入":     
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.join":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is "*":
+                    if arg-2 is set:
+                        set {_downText} to arg-2 to all lower case
+                        if file "plugins/SUPERGUILDS/guilds/%{_downText}%.yml" exists:
+                            SG_checkFile("Datas.Join-Status", "guilds/%{_downText}%") is "2":
+                                set {_maxslot} to SG_checkFile("Datas.Max-Slot", "guilds/%{_downText}%") parsed as integer
+                                if SG_valueArraySize("Datas.Players", "0", "guilds/%{_downText}%") is less than {_maxslot}:
+                                    set {_number} to SG_checkFile("Join-Guild-Cooldown-Minute", "config") parsed as number
+                                    set {_getGuildTimer} to SG_checkFile("Players.Join-New-Guild-Time", "playerdata/%uuid of player%")
+                                    set {_inviteCheck} to SG_timeChecker({_getGuildTimer}, 0)
+                                    if {_inviteCheck} is "true":
+                                        set {_newTime} to SG_getTime(year, month, day, hour, minute+{_number}, second, "hash")
+                                        SG_writeFile("Players.Join-New-Guild-Time", "%{_newTime}%", "playerdata/%uuid of player%")
+                                        SG_writeFile("Datas.Reserve-Players.%uuid of player%.Username", "%player%", "guilds/%{_downText}%")
+                                        SG_writeFile("Datas.Reserve-Players.%uuid of player%.Application-Date", "%now%", "guilds/%{_downText}%")
+                                        send "%{SG::Messages::Prefix}% %{SG::Messages::Application_Send}%" to player
+                                    else:
+                                        set {_msg} to {SG::Messages::Guild_Join_Wait}
+                                        replace all "{TIME}" with "%{_inviteCheck}%" in {_msg}
+                                        send "%{SG::Messages::Prefix}% %{_msg}%" to player
+                                else:
+                                    send "%{SG::Messages::Prefix}% %{SG::Messages::This_Guild_Is_Full}%" to player
+
+                            SG_checkFile("Datas.Join-Status", "guilds/%{_downText}%") is "1":
+                                set {_maxslot} to SG_checkFile("Datas.Max-Slot", "guilds/%{_downText}%") parsed as integer
+                                if SG_valueArraySize("Datas.Players", "0", "guilds/%{_downText}%") is less than {_maxslot}:
+                                    SG_checkFile("General.Races.Enabled", "config") is "*" or "true":
+                                        set {_race} to SG_checkFile("Players.Race", "playerdata/%uuid of player%")
+                                        {_race} is "*" or "0":
+                                            send "%{SG::Messages::Prefix}% %{SG::Messages::Select_Race}%" to player
+                                            stop
+                                    set {_number} to SG_checkFile("Join-Guild-Cooldown-Minute", "config") parsed as number
+                                    set {_getGuildTimer} to SG_checkFile("Players.Join-New-Guild-Time", "playerdata/%uuid of player%")
+                                    set {_inviteCheck} to SG_timeChecker({_getGuildTimer}, 0)
+                                    if {_inviteCheck} is "true":
+                                        set {_newTime} to SG_getTime(year, month, day, hour, minute+{_number}, second, "hash")
+                                        SG_writeFile("Players.Join-New-Guild-Time", "%{_newTime}%", "playerdata/%uuid of player%")
+                                        SG_writeFile("Datas.Players.%uuid of player%.Username", "%player%", "guilds/%{_downText}%")
+                                        SG_writeFile("Datas.Players.%uuid of player%.Rank", "Member", "guilds/%{_downText}%")
+                                        SG_writeFile("Datas.Players.%uuid of player%.Join-Date", "%now%", "guilds/%{_downText}%")
+                                        SG_writeFile("Datas.Players.%uuid of player%.War-Kills", "0", "guilds/%{_downText}%")
+                                        SG_writeFile("Datas.Players.%uuid of player%.War-Deaths", "0", "guilds/%{_downText}%") 
+                                        loop "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool":
+                                            SG_writeFile("Datas.Players.%uuid of player%.Donated-Resource.%loop-value%", "0", "guilds/%{_downText}%")
+                                        SG_writeFile("Players.Guild-Name", "%{_downText}%", "playerdata/%uuid of player%")
+                                        set {_guildlongname} to SG_checkFile("Datas.Name", "guilds/%{_downText}%")
+                                        set {_msg1} to {SG::Messages::You_Joined_Guild}
+                                        replace all "{GUILD}" with "%{_guildlongname}%" in {_msg1}
+                                        send "%{SG::Messages::Prefix}% %{_msg1}%" to player
+                                        set {_msg2} to {SG::Messages::Player_Joined_Guild}
+                                        replace all "{PLAYER}" with "%player%" in {_msg2}
+                                        replace all "{GUILD}" with "%{_guildlongname}%" in {_msg2}
+                                        SG_guildBroadcast({_downText}, {_msg2})
+                                        set {_executable} to SG_checkFile("General.Executable-Commands.On-Guild-Join", "config")
+                                        {_executable} is not "*"
+                                        replace all "{PLAYER}" with "%player%" in {_executable}
+                                        replace all "{GUILD}" with "%{_downText}%" in {_executable}
+                                        replace all "{X}" with "%x coordinate of player%" in {_executable}
+                                        replace all "{Y}" with "%y coordinate of player%" in {_executable}
+                                        replace all "{Z}" with "%z coordinate of player%" in {_executable}
+                                        replace all "{WORLD}" with "%world of player%" in {_executable}
+                                        execute console command "%{_executable}%"
+                                    else:
+                                        set {_msg} to {SG::Messages::Guild_Join_Wait}
+                                        replace all "{TIME}" with "%{_inviteCheck}%" in {_msg}
+                                        send "%{SG::Messages::Prefix}% %{_msg}%" to player      
+                                else:
+                                    send "%{SG::Messages::Prefix}% %{SG::Messages::This_Guild_Is_Full}%" to player
+                            SG_checkFile("Datas.Join-Status", "guilds/%{_downText}%") is "0":
+                                send "%{SG::Messages::Prefix}% %{SG::Messages::This_Guild_Is_Not_Public}%" to player
+                        else:
+                            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Guild_Like_This}%" to player
+                    else:
+                        SG_pageAPI(player, "5", 0)     
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Have_Guild}%" to player
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "invite" or "邀请":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.invite":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is not "*":
+                    set {_r} to SG_checkFile("Datas.Players.%uuid of player%.Rank", "guilds/%{_pGuild}%")
+                    if SG_rankCheck(uuid of player, "Invite") is true:
+                        if arg-2 is set:
+                            if arg-2 is not "%player%":
+                                if "%players%" contains arg-2:
+                                    set {_invPlayer} to arg-2 parsed as player
+                                    set {_uuidInv} to uuid of {_invPlayer}
+                                    set {_invitedGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                                    if {_invitedGuild} is not "*":
+                                        set {_invites} to SG_checkFile("Players.Invites-Enabled", "playerdata/%{_uuidInv}%")
+                                        if {_invites} is "*" or "true":
+                                            set {_maxslot} to SG_checkFile("Datas.Max-Slot", "guilds/%{_pGuild}%") parsed as integer
+                                            set {_s} to SG_valueArraySize("Datas.Players", "0", "guilds/%{_pGuild}%")
+                                            if {_s} is less than {_maxslot}:
+                                                set {_number} to SG_checkFile("General.Invite-Time", "config") parsed as number
+                                                set {_SG_getTimer} to SG_checkFile("Datas.Invite-Time", "guilds/%{_pGuild}%")
+                                                set {_invCheck} to SG_timeChecker({_SG_getTimer}, 0)
+                                                if {_invCheck} is "true":
+                                                    set {_t} to SG_getTime(year, month, day, hour, minute, second+{_number}, "hash")
+                                                    SG_writeFile("Datas.Invite-Time", "%{_t}%", "guilds/%{_pGuild}%")
+                                                    SG_inviteGUI({_invPlayer}, {_pGuild}, "gui")
+                                                    send "%{SG::Messages::Prefix}% %{SG::Messages::Invitation_Send}%" to player
+                                                else:
+                                                    set {_msg} to {SG::Messages::Invite_Wait}
+                                                    replace all "{TIME}" with "%{_invCheck}%" in {_msg}
+                                                    send "%{SG::Messages::Prefix}% %{_msg}%" to player
+                                            else:
+                                                send "%{SG::Messages::Prefix}% %{SG::Messages::Your_Guild_Is_Full}%" to player
+                                        else:
+                                            send "%{SG::Messages::Prefix}% %{SG::Messages::Player_Closed_Invites}%" to player
+                                    else:
+                                        send "%{SG::Messages::Prefix}% %{SG::Messages::Player_Has_Guild}%" to player
+                                else:
+                                    send "%{SG::Messages::Prefix}% %{SG::Messages::Player_Is_Not_Online}%" to player
+                            else:
+                                send "%{SG::Messages::Prefix}% %{SG::Messages::Cant_Invite_Yourself}%" to player
+                        else:
+                            send "%{SG::Messages::Prefix}% %{SG::Messages::Invite_Player_Name}%" to player
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to player
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "invitetoggle" or "邀请开关":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.invitetoggle":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is "*":
+                    set {_invites} to SG_checkFile("Players.Invites-Enabled", "playerdata/%uuid of player%")
+                    if {_invites} is "*" or "true":
+                        SG_writeFile("Players.Invites-Enabled", "false", "playerdata/%uuid of player%")
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::Disabled_Invites}%" to player
+                    else:
+                        SG_writeFile("Players.Invites-Enabled", "true", "playerdata/%uuid of player%")
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::Enabled_Invites}%" to player
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Have_Guild}%" to player
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "donate" or "贡献":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.donate":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                {_pGuild} is not "*":
+                    SG_donateGUI(player, {_pGuild})
+        else if arg 1 is "leave" or "离开":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.leave":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is not "*":
+                    set {_r} to SG_checkFile("Datas.Players.%uuid of player%.Rank", "guilds/%{_pGuild}%")
+                    if {_r} is not "Leader":
+                        SG_writeFile("Players.Guild-Name", "*", "playerdata/%uuid of player%")
+                        set {_name} to SG_checkFile("Datas.Name", "guilds/%{_pGuild}%")
+                        SG_valueDeleteAPI("Datas.Players", uuid of player, "guilds/%{_pGuild}%")
+                        set {_msg} to {SG::Messages::You_Leave}
+                        replace all "{GUILD}" with "%{_name}%" in {_msg}
+                        send "%{SG::Messages::Prefix}% %{_msg}%"
+                        set {_msg} to {SG::Messages::Player_Leave}
+                        replace all "{RANK}" with "%{SG::Messages::Rank_%{_r}%}%" in {_msg}
+                        replace all "{PLAYER}" with "%player%" in {_msg}    
+                        SG_guildBroadcast({_pGuild}, "%{_msg}%")
+                        set {_executable} to SG_checkFile("General.Executable-Commands.On-Guild-Leave", "config")
+                        {_executable} is not "*"
+                        replace all "{PLAYER}" with "%player%" in {_executable}
+                        replace all "{X}" with "%x coordinate of player%" in {_executable}
+                        replace all "{Y}" with "%y coordinate of player%" in {_executable}
+                        replace all "{Z}" with "%z coordinate of player%" in {_executable}
+                        replace all "{WORLD}" with "%world of player%" in {_executable}
+                        replace all "{GUILD}" with "%{_pGuild}%" in {_executable}
+                        execute console command "%{_executable}%"
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::Leader_Leave}%" to player
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player
+        else if arg 1 is "showclaims" or "显示":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.showclaims":
+                if SG_checkFile("General.Claims", "config") is "true":
+                    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                    if {_pGuild} is not "*":
+                        set {_getGuildTimer} to SG_checkFile("Datas.Show-Claims-Time", "guilds/%{_pGuild}%")
+                        set {_check} to SG_timeChecker({_getGuildTimer}, 0)
+                        if {_check} is "true":
+                            SG_guildShowAllClaims(player)
+                        else:
+                            set {_msg} to {SG::Messages::Show_Claim_Wait}
+                            replace all "{TIME}" with "%{_check}%" in {_msg}
+                            send "%{SG::Messages::Prefix}% %{_msg}%" to player                              
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::Option_Disabled}%" to player
+            else:   
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player   
+        else if arg 1 is "allies" or "同盟":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.allies":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is not "*":
+                    SG_pageAPI(player, "4", 0)
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player     
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player   
+        else if arg 1 is "ally" or "同盟":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.ally":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is not "*":
+                    if arg 2 is set:        
+                        set {_downText} to arg-2 to all lower case
+                        if file "plugins/SUPERGUILDS/guilds/%{_downText}%.yml" exists:
+                            if SG_rankCheck(uuid of player, "Ally") is true:       
+                                if {_pGuild} is not "%{_downText}%":
+                                    set {_a::*} to SG_yamlList("Datas.Allies", "guilds/%{_pGuild}%")
+                                    if "%{_a::*}%" doesn't contain "%{_downText}%":
+                                        set {_number} to SG_checkFile("General.Ally-Cooldown", "config") parsed as number
+                                        set {_getGuildTimer} to SG_checkFile("Datas.Ally-Time", "guilds/%{_pGuild}%")
+                                        set {_check} to SG_timeChecker({_getGuildTimer}, 0)
+                                        if {_check} is "true":
+                                            set {_t} to SG_getTime(year, month, day, hour, minute, second + {_number}, "hash")
+                                            SG_findRankedPlayer("%{_downText}%", "Ally") is false:
+                                                send "%{SG::Messages::Prefix}% %{SG::Messages::Enemy_leader_Not_Online}%" to player     
+                                                stop
+                                            set {_list::*} to SG_yamlList("Datas.Players", "guilds/%{_downText}%")
+                                            loop {_list::*}:
+                                                clear {_rp}
+                                                SG_rankCheck("%loop-value%", "Ally") is true
+                                                set {_rp} to SG_checkFile("Datas.Players.%loop-value%.Username", "guilds/%{_downText}%")
+                                                {_rp} parsed as offline player is online
+                                                exit loop
+                                            SG_writeFile("Datas.Ally-Time", "%{_t}%", "guilds/%{_pGuild}%")
+                                            SG_allyGUI(player, {_rp}, "gui")
+                                            set {_name} to SG_checkFile("Datas.Name", "guilds/%{_downText}%")
+                                            set {_msg} to {SG::Messages::Sent_Ally_Request}
+                                            replace all "{GUILD}" with "%{_name}%" in {_msg}
+                                            send "%{SG::Messages::Prefix}% %{_msg}%" to player
+                                        else:
+                                            set {_msg} to {SG::Messages::Wait_Ally}
+                                            replace all "{TIME}" with "%{_check}%" in {_msg}
+                                            send "%{SG::Messages::Prefix}% %{_msg}%" to player              
+                                    else:
+                                        send "%{SG::Messages::Prefix}% %{SG::Messages::Already_Ally}%" to player    
+                                else:
+                                    send "%{SG::Messages::Prefix}% %{SG::Messages::Ally_Yourself}%" to player       
+                            else:
+                                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to player                     
+                        else:
+                            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Guild_Like_This}%" to player
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::Enter_Guild_Name}%" to player                            
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player     
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player   
+        else if arg 1 is "enemy" or "敌对":
+            if player has permission "guilds.*" or "guilds.player" or "guilds.admin" or "guilds.enemy":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+                if {_pGuild} is not "*":
+                    if arg 2 is set:        
+                        set {_downText} to arg-2 to all lower case
+                        set {_r} to SG_checkFile("Datas.Players.%uuid of player%.Rank", "guilds/%{_pGuild}%")
+                        if file "plugins/SUPERGUILDS/guilds/%{_downText}%.yml" exists:
+                            if SG_rankCheck(uuid of player, "Ally") is true:
+                                set {_number} to SG_checkFile("General.Ally-Cooldown", "config") parsed as number
+                                set {_getGuildTimer} to SG_checkFile("Datas.Ally-Time", "guilds/%{_pGuild}%")
+                                set {_check} to SG_timeChecker({_getGuildTimer}, 0)
+                                if {_check} is "true":
+                                    set {_t} to SG_getTime(year, month, day, hour, minute, second+{_number}, "hash")
+                                    SG_writeFile("Datas.Ally-Time", "%{_t}%", "guilds/%{_pGuild}%")
+                                    set {_a::*} to SG_yamlList("Datas.Allies", "guilds/%{_pGuild}%")
+                                    if "%{_a::*}%" contains arg 2:
+                                        SG_valueDeleteAPI("Datas.Allies", arg 2, "guilds/%{_pGuild}%")
+                                        SG_valueDeleteAPI("Datas.Allies", "%{_pGuild}%", "guilds/%arg 2%")
+                                        set {_msg} to {SG::Messages::Removed_Ally}
+                                        set {_name1} to SG_checkFile("Datas.Name", "guilds/%{_pGuild}%")
+                                        set {_name2} to SG_checkFile("Datas.Name", "guilds/%{_downText}%")
+                                        replace all "{GUILD}" with {_name1} in {_msg}
+                                        replace all "{ENEMY}" with {_name2} in {_msg}
+                                        broadcast "%{SG::Messages::Prefix}% %{_msg}%"
+                                    else:
+                                        send "%{SG::Messages::Prefix}% %{SG::Messages::No_Ally}%" to player 
+                                else:
+                                    set {_msg} to {SG::Messages::Wait_Ally}
+                                    replace all "{TIME}" with "%{_check}%" in {_msg}
+                                    send "%{SG::Messages::Prefix}% %{_msg}%" to player                                              
+                            else:
+                                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to player                     
+                        else:
+                            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Guild_Like_This}%" to player
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::Enter_Guild_Name}%" to player                            
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to player     
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Permission}%" to player   
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::Unknown_Command}%" to player

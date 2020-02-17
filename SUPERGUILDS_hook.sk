@@ -1,0 +1,7 @@
+import:
+    me.clip.deluxechat.events.DeluxeChatEvent
+
+on DeluxeChatEvent:
+    SG_checkFile("Players.Guild-Name", "playerdata/%event.getPlayer().getUniqueId()%") is not "*"
+    SG_checkFile("Players.Chat-Enabled", "playerdata/%event.getPlayer().getUniqueId()%") is "true"
+    event.setCancelled(true)

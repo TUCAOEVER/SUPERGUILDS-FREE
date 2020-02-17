@@ -1,0 +1,1052 @@
+import:
+    org.bukkit.event.block.BlockPlaceEvent
+    org.bukkit.event.block.BlockBreakEvent
+    org.bukkit.event.player.PlayerInteractEvent
+    org.bukkit.event.player.AsyncPlayerChatEvent
+    org.bukkit.event.player.PlayerCommandPreprocessEvent
+
+on load:
+    file "plugins/SUPERGUILDS/config.yml" doesn't exists:
+        create file "plugins/SUPERGUILDS/config.yml"
+    load yaml "plugins/SUPERGUILDS/config.yml" as "plugins/SUPERGUILDS/config.yml"
+    # 种族相关
+    add "General.Races.Enabled;true" to {_config::*}
+    add "General.Races.Effects;true" to {_config::*}
+    add "General.Races.Default-Rights;10" to {_config::*}
+    add "General.Races.Cooldown-Minute;5" to {_config::*}
+    add "General.Language;en_US" to {_config::*}
+    add "General.Holos;True" to {_config::*}
+    # 
+    add "General.Create-Disabled-Worlds;world,world_nether" to {_config::*}
+    add "General.Claim-Disabled-Worlds;world,world_nether" to {_config::*}
+    add "General.Send-Guild-Chat-To-Ops;true" to {_config::*}
+    add "General.Building-Upgrade-Minutes.Townhall;60" to {_config::*}
+    add "General.Building-Upgrade-Minutes.Barrack;30" to {_config::*}
+    add "General.Building-Upgrade-Minutes.Storage;10" to {_config::*}
+    add "General.Building-Upgrade-Minutes.Alchemy;120" to {_config::*}
+
+    add "General.Break-Only-Claimed-Areas-Enabled-Worlds;Guild,Lobby,RPG" to {_config::*}
+    add "General.Place-Only-Claimed-Areas-Enabled-Worlds;Guild,Lobby,RPG" to {_config::*}
+    add "General.Interact-Only-Claimed-Areas-Enabled-Worlds;Guild" to {_config::*}
+
+    add "General.Auto-Claim-Building-Chunk;true" to {_config::*}
+    add "General.Min-Barrack-Level-To-War;2" to {_config::*}
+    add "General.Worker-Time;10" to {_config::*}
+    #
+    add "General.WorldGuard-Support;true" to {_config::*}
+    add "General.Schematics;true" to {_config::*}
+    add "General.Claims;true" to {_config::*}
+    add "General.Homes;true" to {_config::*}
+    
+    add "General.Claim-Protection.Damage-Protection;true" to {_config::*}
+    add "General.Claim-Protection.Right-Click;true" to {_config::*}
+    add "General.Claim-Protection.Left-Click;true" to {_config::*}
+    #
+    
+    add "General.Friend-Max-Count;28" to {_config::*}   
+    add "General.Ally-Cooldown;15" to {_config::*}      
+    add "General.Join-Guild-Cooldown-Minute;60" to {_config::*} 
+    
+    add "General.Teleport-Time;7" to {_config::*}
+    add "General.Invite-Time;30" to {_config::*}
+    add "General.Show-Claims-Time;10" to {_config::*}
+    add "General.Tournament-Win-Points;50" to {_config::*}
+    #
+    add "General.Executable-Commands.On-Guild-Create;*" to {_config::*}     
+    add "General.Executable-Commands.On-Guild-Disband;*" to {_config::*}    
+    add "General.Executable-Commands.On-Create-Building;*" to {_config::*}      
+    add "General.Executable-Commands.On-Guild-Join;*" to {_config::*}
+    add "General.Executable-Commands.On-Guild-Leave;*" to {_config::*}  
+    add "General.Executable-Commands.On-Claim;*" to {_config::*}
+    add "General.Executable-Commands.On-Unclaim;*" to {_config::*}
+    add "General.Executable-Commands.On-Death;*" to {_config::*}
+    #
+    add "Guild-Management.Adjacent-Chunks-Only;false" to {_config::*}
+    add "Guild-Management.Capture-Land-From-Guilds;false" to {_config::*}
+    add "Guild-Management.Player-Stats-Show-Location;true" to {_config::*}
+    add "Guild-Management.Start-With-Claim;true" to {_config::*}
+    add "Guild-Management.Teleport-To-Claims;true" to {_config::*}
+    #
+    add "Guild-Management.Upgrade-Townhall-Increase-Max-Member;4" to {_config::*}
+    add "Guild-Management.Upgrade-Townhall-Increase-Max-Claim;4" to {_config::*}
+    add "Guild-Management.Upgrade-Storage-Increase-Limit;500" to {_config::*}
+    #
+    add "Guild-Management.Required-Money-To-Create;0" to {_config::*}
+    add "Guild-Management.Required-Gold-To-Create;0" to {_config::*}
+    add "Guild-Management.Min-Name-Length;4" to {_config::*}
+    add "Guild-Management.Max-Name-Length;16" to {_config::*}
+    add "Guild-Management.Start-MaxSlot;4" to {_config::*}
+    add "Guild-Management.Start-MaxClaim;4" to {_config::*}
+    #
+    add "Guild-Management.Claim-Gold-Cost;150" to {_config::*}
+    add "Guild-Management.Unclaim-Gold-Refund;75" to {_config::*}
+    add "Guild-Management.Claim-Gold-Increase;100" to {_config::*}
+    add "Guild-Management.Death-Penalty-Gold;5" to {_config::*}
+    #
+    add "Guild-Management.Ranks.Leader-Permissions;Disband,Upgrade,Alchemy,Vault,Kick,Rank,Condition,Sethome,Claim,Emblem,Invite,Ally,War,Donate,Break,Place,Interact" to {_config::*}
+    add "Guild-Management.Ranks.General-Permissions;Upgrade,Alchemy,Vault,Kick,Rank,Condition,Sethome,Claim,Emblem,Invite,Ally,War,Donate,Break,Place,Interact" to {_config::*}
+    add "Guild-Management.Ranks.Captain-Permissions;Upgrade,Alchemy,Vault,Sethome,Claim,Emblem,Donate,Break,Place,Interact" to {_config::*}
+    add "Guild-Management.Ranks.Member-Permissions;Vault,Donate" to {_config::*}
+    #
+    add "Guild-Management.Ranks.Leader-Permission-Level;4" to {_config::*}
+    add "Guild-Management.Ranks.General-Permission-Level;3" to {_config::*}
+    add "Guild-Management.Ranks.Captain-Permission-Level;2" to {_config::*}
+    add "Guild-Management.Ranks.Member-Permission-Level;1" to {_config::*}
+    #
+    add "Guild-Management.Ranks.Leader-Name;§c首领 ♚" to {_config::*}
+    add "Guild-Management.Ranks.General-Name;§9总管 ♕" to {_config::*}
+    add "Guild-Management.Ranks.Captain-Name;§b副管 ♝" to {_config::*}
+    add "Guild-Management.Ranks.Member-Name;§7成员 ♟" to {_config::*}
+    #-------
+    add "Guild-Management.Buildings.Claimed-Lands-Need;true" to {_config::*}
+    add "Guild-Management.Buildings.Townhall-Upgrade.Wood;500" to {_config::*}
+    add "Guild-Management.Buildings.Townhall-Upgrade.Stone;400" to {_config::*}
+    add "Guild-Management.Buildings.Townhall-Upgrade.Iron;200" to {_config::*}
+    add "Guild-Management.Buildings.Townhall-Upgrade.Gold;100" to {_config::*}
+    add "Guild-Management.Buildings.Townhall-Upgrade.Diamond;25" to {_config::*}
+    add "Guild-Management.Buildings.Townhall-Upgrade.Wool;10" to {_config::*}
+    #
+    add "Guild-Management.Buildings.Barrack-Upgrade.Wood;500" to {_config::*}
+    add "Guild-Management.Buildings.Barrack-Upgrade.Stone;500" to {_config::*}
+    add "Guild-Management.Buildings.Barrack-Upgrade.Iron;500" to {_config::*}
+    add "Guild-Management.Buildings.Barrack-Upgrade.Gold;400" to {_config::*}
+    add "Guild-Management.Buildings.Barrack-Upgrade.Diamond;100" to {_config::*}
+    add "Guild-Management.Buildings.Barrack-Upgrade.Wool;50" to {_config::*}
+    #
+    add "Guild-Management.Buildings.Storage-Upgrade.Wood;200" to {_config::*}
+    add "Guild-Management.Buildings.Storage-Upgrade.Stone;100" to {_config::*}
+    add "Guild-Management.Buildings.Storage-Upgrade.Iron;50" to {_config::*}
+    add "Guild-Management.Buildings.Storage-Upgrade.Gold;25" to {_config::*}
+    add "Guild-Management.Buildings.Storage-Upgrade.Diamond;10" to {_config::*}
+    add "Guild-Management.Buildings.Storage-Upgrade.Wool;5" to {_config::*}
+    #
+    add "Guild-Management.Buildings.Alchemy-Upgrade.Wood;500" to {_config::*}
+    add "Guild-Management.Buildings.Alchemy-Upgrade.Stone;500" to {_config::*}
+    add "Guild-Management.Buildings.Alchemy-Upgrade.Iron;400" to {_config::*}
+    add "Guild-Management.Buildings.Alchemy-Upgrade.Gold;300" to {_config::*}
+    add "Guild-Management.Buildings.Alchemy-Upgrade.Diamond;500" to {_config::*}
+    add "Guild-Management.Buildings.Alchemy-Upgrade.Wool;100" to {_config::*}
+    #-------
+    add "Guild-Management.Buildings.Alchemy-Effect-1.Level-1;1000" to {_config::*}
+    add "Guild-Management.Buildings.Alchemy-Effect-1.Level-2;2000" to {_config::*}
+    add "Guild-Management.Buildings.Alchemy-Effect-1.Level-3;3000" to {_config::*}
+    #
+    add "Guild-Management.Buildings.Alchemy-Effect-2.Level-1;1000" to {_config::*}
+    add "Guild-Management.Buildings.Alchemy-Effect-2.Level-2;1500" to {_config::*}
+    add "Guild-Management.Buildings.Alchemy-Effect-2.Level-3;2000" to {_config::*}
+    # 仓库相关
+    add "Guild-Management.Storage-Size.Level-1;1" to {_config::*}
+    add "Guild-Management.Storage-Size.Level-2;1" to {_config::*}
+    add "Guild-Management.Storage-Size.Level-3;2" to {_config::*}
+    add "Guild-Management.Storage-Size.Level-4;2" to {_config::*}
+    add "Guild-Management.Storage-Size.Level-5;3" to {_config::*}
+    add "Guild-Management.Storage-Size.Level-6;3" to {_config::*}
+    add "Guild-Management.Storage-Size.Level-7;4" to {_config::*}
+    add "Guild-Management.Storage-Size.Level-8;4" to {_config::*}
+    # 初始相关
+    add "Guild-Management.Resources.Wood.Start-Amount;0" to {_config::*}
+    add "Guild-Management.Resources.Stone.Start-Amount;0" to {_config::*}
+    add "Guild-Management.Resources.Iron.Start-Amount;0" to {_config::*}
+    add "Guild-Management.Resources.Gold.Start-Amount;0" to {_config::*}
+    add "Guild-Management.Resources.Diamond.Start-Amount;0" to {_config::*}
+    add "Guild-Management.Resources.Wool.Start-Amount;0" to {_config::*}
+    #-----
+    add "Guild-Management.Resources.Wood.Start-Max;1000" to {_config::*}
+    add "Guild-Management.Resources.Stone.Start-Max;1000" to {_config::*}
+    add "Guild-Management.Resources.Iron.Start-Max;750" to {_config::*}
+    add "Guild-Management.Resources.Gold.Start-Max;500" to {_config::*}
+    add "Guild-Management.Resources.Diamond.Start-Max;500" to {_config::*}
+    add "Guild-Management.Resources.Wool.Start-Max;100" to {_config::*}
+    
+    loop {_config::*}:
+        set {_var::*} to loop-value split at ";"
+        set {_varName} to {_var::1}
+        set {_value} to {_var::2}
+        yaml value "%{_varName}%" from "plugins/SUPERGUILDS/config.yml" is not set
+        set yaml value "%{_varName}%" from "plugins/SUPERGUILDS/config.yml" to "%{_value}%"
+    # 版本号
+    set yaml value "Version" from "plugins/SUPERGUILDS/config.yml" to "6.7.3"
+    save yaml "plugins/SUPERGUILDS/config.yml"
+    
+    set {_lang} to yaml value "General.Language" from "plugins/SUPERGUILDS/config.yml"
+    send "[&eSUPERGUILDS&r] 正在加载 %{_lang}%.yml 语言文件..." to console
+    file "plugins/SUPERGUILDS/locale/%{_lang}%.yml" doesn't exists:
+        create file "plugins/SUPERGUILDS/locale/%{_lang}%.yml"
+    load yaml "plugins/SUPERGUILDS/locale/%{_lang}%.yml" as "plugins/SUPERGUILDS/locale/%{_lang}%.yml"
+    set {_now} to now
+    add "Prefix~&6&lSUPERGUILDS &6➥&7" to {_list::*}
+    add "Char_Error~&7The text contains inappropriate characters." to {_list::*}
+    add "WorldGuard_Error~&7There is under protection by WorldGuard." to {_list::*} 
+    add "Chunk_Error~&7There is another guild here." to {_list::*}
+    add "Dont_Have_Gold_To_Create~&7You do not have enough gold ingot in your inventory to create the guild. You must have &e{NUMBER}&7." to {_list::*}
+    add "Created_Guild~&e{PLAYER}&7, created &b{GUILD} &7guild." to {_list::*} 
+    add "Land_Error~&7Your position is not safe." to {_list::*} 
+    add "Guild_Name_Length~&7This guild name is too long or too short." to {_list::*} 
+    add "That_Guild_Exists~&7There is such a guild." to {_list::*} 
+    add "Enter_Guild_Name~&7Enter the guild name." to {_list::*} 
+    add "You_Have_Guild~&7You already have a guild." to {_list::*}
+    add "Remove_Confirm~&7Are you sure you want to delete the guild? If you sure, use this command again." to {_list::*}
+    add "Guild_Removed~&7The guild has been deleted." to {_list::*} 
+    add "No_Permission~&7You do not have permission for this." to {_list::*} 
+    add "You_Dont_Have_Guild~&7You do not have a guild." to {_list::*} 
+    add "You_Arent_Leader~&7You're not the leader of the guild." to {_list::*} 
+    add "Guild_Remove_Broadcast~&c{GUILD} &7has been disbanded." to {_list::*} 
+    add "Option_Disabled~&7This feature is disabled." to {_list::*} 
+    add "No_Rank~&7Your guild rank is not enough." to {_list::*} 
+    add "You_Dont_Have_This_Chunk~&7Your guild hasn't this chunk." to {_list::*} 
+    add "Done_Set_Home~&7The guild home is set." to {_list::*} 
+    add "Teleporting_Message~&7You will be teleported in &e{TIME} &7seconds." to {_list::*}
+    add "Teleport_Cancel~&7The teleporting was canceled because you moved." to {_list::*} 
+    add "Teleport_Done~&7You are teleported successfully." to {_list::*}
+    add "Already_Teleport~&7You are already teleporting right now." to {_list::*}
+    add "Teleport_Starting~&7The teleporting has started, please do not move." to {_list::*}
+    add "GUIPrefix~&8&l» &8" to {_list::*}
+    add "Guild_Management~Guild Management" to {_list::*}
+    add "Manage_Panel_2~&6ID:" to {_list::*}
+    add "Rank_Leader~&bLeader &3★★★&b" to {_list::*}
+    add "Rank_General~&aGeneral &2★★&a" to {_list::*}
+    add "Rank_Captain~&dCaptain &5★&d" to {_list::*}
+    add "Rank_Member~&8Member" to {_list::*}
+    add "Reserve_Players~&6Reserve Players" to {_list::*}
+    add "Reserve_Players_Lore~||&7Click to see all reserve players." to {_list::*}
+    add "Guild_Store~&6Guild Storage" to {_list::*}
+    add "Guild_Store_Lore~||&7Click to open guild storage." to {_list::*}
+    add "Claimed_Lands~&6Claimed Lands" to {_list::*}
+    add "Claimed_Lands_Lore~||&7Click to see claims of your guild." to {_list::*}
+    add "Guild_Alchemy~&6Guild Alchemy" to {_list::*}       
+    add "Guild_Alchemy_Lore~||&7Click here to open alchemy menu." to {_list::*} 
+    add "Check_Players~&6Player List" to {_list::*}
+    add "Check_Players_Lore~||&7Click here to see the list of guild players." to {_list::*}
+    add "Guild_Buildings~&6Guild Buildings" to {_list::*}
+    add "Guild_Buildings_Lore~||&7Click to see guild buildings." to {_list::*}
+    add "Guild_Info_Lore~||&7Click to see guild information." to {_list::*}
+    add "Guild_Info_Header~Guild Information" to {_list::*}
+    add "Guild_Info_1~&6Guild ID" to {_list::*}
+    add "Guild_Info_1_Lore~||&eName:||&f{NAME}||||&eEmblem:||&f{EMBLEM}||||&eCurrent Leader:||&f{LEADER}" to {_list::*}
+    add "Guild_Info_2~&6Guild Foundation" to {_list::*}
+    add "Guild_Info_2_Lore~||&eDate Of Foundation:||&f{TIME}||||&eCreator:||&f{CREATOR}" to {_list::*}
+    add "Guild_Info_3~&6Guild Status" to {_list::*}
+    add "Guild_Info_3_Lore~||&eWar;||&7 → Kills: &f{KILLS}||&7 → Deaths: &f{DEATHS}||||&eGuild Division:||&f{LEVEL}||||&eGuild Points:||&f{POINTS} ✪||||&eNumber of Players:||&f{PLAYERS}/{MAX}||||&eClaimed Land:||&f{CLAIMED}" to {_list::*}
+    add "Kick_Error_No_Guild~&7This player is not in the guild." to {_list::*}
+    add "Kick_Error_No_Rank~&7Your guild rank is not enough to kick this player." to {_list::*}
+    add "Kicked_Player~&c{KICKED}&7 kicked from your guild by &e{PLAYER}&7." to {_list::*}
+    add "You_Kicked~&7You were kicked out from guild." to {_list::*}
+    add "No_Kick_Yourself~&7You can't kick yourself." to {_list::*}
+    add "Claim_Error~&7You already have this land." to {_list::*}
+    add "No_Claim_Level~&7The guild that owns this land's division is greater than your guild's division." to {_list::*}
+    add "Attacking_You~&c{ATTACKER}&7 took your land at &e{LAND}&7." to {_list::*}
+    add "Attacked_Chunk~&7Your guild took a land at &e{LAND} &7belongs &c{OWN}&7." to {_list::*}
+    add "Chunk_Claimed~&7You claimed a land at &e{LAND}&7." to {_list::*}
+    add "Chunk_Error_You~&7This land is not yours." to {_list::*}
+    add "Chunk_Unclaimed~&7You unclaimed a land at &e{LAND}&7." to {_list::*}
+    add "Romen_Num_1~I" to {_list::*}
+    add "Romen_Num_2~II" to {_list::*}
+    add "Romen_Num_3~III" to {_list::*}
+    add "Romen_Num_4~IV" to {_list::*}
+    add "Romen_Num_5~V" to {_list::*}
+    add "Romen_Num_6~VI" to {_list::*}
+    add "Romen_Num_7~VII" to {_list::*}
+    add "Romen_Num_8~IIX" to {_list::*}
+    add "Store_GUI~Guild Storage" to {_list::*}
+    add "Store_Status~&7Available: &f{NUMBER}" to {_list::*}
+    add "Help_Pages_1::Line_1~&e/guild help &8- &7Opens help page." to {_list::*}
+    add "Help_Pages_1::Line_2~&e/guild create <guild name> &8- &7Creates a guild." to {_list::*}
+    add "Help_Pages_1::Line_3~&e/guild disband &8- &7Disband the current guild." to {_list::*}
+    add "Help_Pages_1::Line_4~&e/guild emblem &8- &7Make the guild emblem." to {_list::*}
+    add "Help_Pages_1::Line_5~&e/guild info &8- &7Shows the guild statistics." to {_list::*}
+    add "Help_Pages_1::Line_6~&e/guild leave &8- &7Leave your guild." to {_list::*}
+    add "Help_Pages_1::Line_7~&e/guild vault &8- &7Shows the guild vault." to {_list::*}
+    add "Help_Pages_1::Line_8~&e/guild claimname <name> &8- &7Set name of claim where you at." to {_list::*}
+    add "Help_Pages_2::Line_1~&e/guild pvptoggle &8- &7Enable/Disable guild pvp." to {_list::*}
+    add "Help_Pages_2::Line_2~&e/guild invite <player> &8- &7Invites a player to guild." to {_list::*}
+    add "Help_Pages_2::Line_3~&e/guild claim &8- &7Claims where you are." to {_list::*}
+    add "Help_Pages_2::Line_4~&e/guild unclaim &8- &7Unclaims where you are." to {_list::*}
+    add "Help_Pages_2::Line_5~&e/guild rank &8- &7Changes players rank." to {_list::*}
+    add "Help_Pages_2::Line_6~&e/guild notifiertoggle &8- &7Enable/Disable title notifier." to {_list::*}
+    add "Help_Pages_2::Line_7~&e/guild home &8- &7Teleports to your guild's home." to {_list::*}
+    add "Help_Pages_3::Line_1~&e/guild sethome &8- &7Sets your guild home." to {_list::*}
+    add "Help_Pages_3::Line_2~&e/guild war &8- &7War with another guilds." to {_list::*}
+    add "Help_Pages_3::Line_3~&e/guild version &8- &7Shows plugin's version." to {_list::*}
+    add "Help_Pages_3::Line_4~&e/guild buildings &8- &7Shows guild buildings." to {_list::*}
+    add "Help_Pages_3::Line_5~&e/guild showclaims &8- &7Shows guild's all claims." to {_list::*}
+    add "Help_Pages_3::Line_6~&e/guild alchemy &8- &7Shows your guild alchemy." to {_list::*}
+    add "Help_Pages_3::Line_7~&e/guild invitetoggle &8- &7Enable/Disable guild invites." to {_list::*}
+    add "Help_Pages_3::Line_8~&e/guild chat &8- &7Enable/Disable guild chat." to {_list::*}
+    add "Next_Page~&8&m--------&r &7Use &6/sg help {NEXT} &7to see next page. &8&m-------" to {_list::*}
+    add "Invite_Player_Name~&7Enter the player name to be invited." to {_list::*}
+    add "Cant_Invite_Yourself~&7You can't invite yourself." to {_list::*}
+    add "Player_Closed_Invites~&7This player disabled invites." to {_list::*}
+    add "Player_Has_Guild~&7This player has a guild." to {_list::*}
+    add "Your_Guild_Is_Full~&7Your guild is full. You can upgrade Townhall for more player slot." to {_list::*}
+    add "Invite_Wait~&7You have to wait &e{TIME} &7to invite someone." to {_list::*}
+    add "This_Guild_Is_Full~&7This guild is full." to {_list::*}
+    add "Invitation_Send~&7The guild invitation has sent to the player." to {_list::*}
+    add "Application_Send~&7Your application has been sent to the guild." to {_list::*}
+    add "Invite_GUI~Invitation Card" to {_list::*}
+    add "InviteC_Accept~&6Accept and join to &e{GUILD}&6." to {_list::*}
+    add "InviteC_Reject~&cReject and close the menu." to {_list::*}
+    add "You_Reject_Invitation~&7You reject the guild invitation." to {_list::*}
+    add "You_Reject_Application~&7You reject {PLAYER}'s application." to {_list::*}
+    add "You_Joined_Guild~&7You joined to the &e{GUILD} &7guild." to {_list::*}
+    add "Player_Joined_Guild~&6{PLAYER} &7joined to the &e{GUILD} &7guild." to {_list::*}
+    add "Disabled_Invites~&7You've disabled invitation cards." to {_list::*}
+    add "Enabled_Invites~&7You've enabled invitation cards." to {_list::*}
+    add "Disabled_Notifiers~&7You've disabled notifiers." to {_list::*}
+    add "Enabled_Notifiers~&7You've enabled notifiers." to {_list::*}
+    add "Disabled_Guild_PVP~&7You've disabled guild pvp." to {_list::*}
+    add "Enabled_Guild_PVP~&7You've enabled guild pvp." to {_list::*}
+    add "No_Storage~&7No storage for &f{NUMBER} {RESOURCE}&r&7. &7You can upgrade storage to do this." to {_list::*}
+    add "Player_Donated~{RANK} {PLAYER}&7, donated &f{NUMBER} {RESOURCE}&r &7to guild storage." to {_list::*}
+    add "Leader_Leave~&7You're leader, leader can't leave from guild. You can disband the guild using &e/g disband&7." to {_list::*}
+    add "Player_Leave~{RANK} {PLAYER}&7, left the guild." to {_list::*}
+    add "You_Leave~&7You've left from &c{GUILD}&7." to {_list::*}
+    add "Unknown_Command~Unknown command." to {_list::*}
+    add "Guild_Error_Upgrade~&7You are not in this guild any more." to {_list::*}
+    add "Limit_Buildings~&7You've reached max level for this building." to {_list::*}
+    add "Buildings_Broadcast_1~&7Guild Slot: &a+{NUMSLOT} &7Guild Claim: &a+{NUMCALIM}" to {_list::*}
+    add "Buildings_Broadcast_2~&7Your guild will begin the wars with {ITEM}&7." to {_list::*}
+    add "Buildings_Broadcast_3~&7Guild storage increased: &a+500" to {_list::*}
+    add "Buildings_Broadcast_4~&7Your guild can use next level of alchemy now." to {_list::*}
+    add "Showing_Claims~&7You can see all of your guild claims now.  If you don't want to see these you can re-join to the server." to {_list::*}
+    add "No_Claims~&7Your guilds has no claims." to {_list::*}  
+    add "Show_Claim_Wait~&7You have to wait &e{TIME} &7to show all claims." to {_list::*}
+    add "Status_Online~&aOnline" to {_list::*}
+    add "Status_Offline~&cOffline" to {_list::*}
+    add "Rank_Yourself~&7You cannot change your rank." to {_list::*}
+    add "Rank_Not_Enough~&7Your rank is not enough for this action." to {_list::*}
+    add "Player_Info_No_Guild~||&7Player doesn't have a guild." to {_list::*}
+    add "Player_Stats~Player Stats" to {_list::*}
+    add "Player_Info_Name_1~&6Guild Information:" to {_list::*}
+    add "Player_Info_Name_2~&6Player Information:" to {_list::*}
+    add "Player_Info_Name_3~&6Other Information:" to {_list::*}
+    add "No_Guild_Like_This~&7No guild was found in this name." to {_list::*}
+    add "No_Player_Like_This~&7No player was found in this name." to {_list::*}
+    add "Guild_Emblem_GUI~&6Guild Emblem" to {_list::*}
+    add "Guild_Emblem_Lore~||&7Click to make guild emblem." to {_list::*}
+    add "Rank_Changed~&7Your rank has been changed to {RANK}§7." to {_list::*}
+    add "Ranked_Player~§7{OLDRANKCHANGEP} {CHANGEP}§7's rank has been changed to {NEWRANKCHANGEP} &7by {RANKPLAYER} {PLAYER}§7." to {_list::*}
+    add "Rank_Wrong~&7You can only choose low-ranking ranks than your ranks." to {_list::*}
+    add "You_Cant_Action~&7You can't change anything on &e{BUILD} &7zone." to {_list::*}
+    add "Owned_By~&7This chunk is owned by &e{GUILD}&7 guild. You can't change anything." to {_list::*}
+    add "Reloading_1~&7All files are reloading..." to {_list::*}
+    add "Reloading_2~&7All files are reloaded." to {_list::*}
+    add "Emblem_Saved~&7Guild emblem has been saved." to {_list::*}     
+    add "Select_Color~&7You didn't select the color." to {_list::*}
+    add "Select_Code~&7You didn't select the box." to {_list::*}        
+    add "Guild_Emblem_Changed~&7Your guild's emblem has been changed by &e{PLAYER}&7." to {_list::*}
+    add "Create_Guild_Disabled_World~&7You can't create guild in your world." to {_list::*}         
+    add "Back_Header~&6Back" to {_list::*}      
+    add "Menu_Alchemy_GUI~Guild Alchemy" to {_list::*}
+    add "Text_Feature~&eFeature:" to {_list::*}
+    add "Text_Price~&ePrice:" to {_list::*}
+    add "Text_Buy~&eClick here to buy this feature." to {_list::*}
+    add "Alchemy_Menu_Lore_1~&8 → &7Increase guild members' attack damage." to {_list::*}
+    add "Alchemy_Menu_Lore_2~&8 → &7Reinforce guild members' defence ability." to {_list::*}
+    add "Alchemy_Type_1_Name_1~&6Level I Attack" to {_list::*}
+    add "Alchemy_Type_1_Name_2~&6Level II Attack" to {_list::*}
+    add "Alchemy_Type_1_Name_3~&6Level III Attack" to {_list::*}
+    add "Alchemy_Type_2_Name_1~&6Level I Defence" to {_list::*}
+    add "Alchemy_Type_2_Name_2~&6Level II Defence" to {_list::*}
+    add "Alchemy_Type_2_Name_3~&6Level III Defence" to {_list::*}
+    add "Alchemy_Max_Level~&7This type has been upgraded to max level." to {_list::*}
+    add "Bought_Alchemy_Guild~&e{GUILD} &7guild, bought &6{TYPE} &7from guild alchemy." to {_list::*}
+    add "Bought_Alchemy_Own~&7{RANK} {PLAYER}&7, bought &6{TYPE} &7from guild alchemy." to {_list::*}           
+    add "Barrack_Upgrade_Item_1~&7leather set" to {_list::*}    
+    add "Barrack_Upgrade_Item_2~&egolden set" to {_list::*}     
+    add "Barrack_Upgrade_Item_3~&8chain set" to {_list::*}      
+    add "Barrack_Upgrade_Item_4~&firon set" to {_list::*}   
+    add "Barrack_Upgrade_Item_5~&bdiamond set" to {_list::*}        
+    add "Menu_War_GUI~Guild Wars" to {_list::*}     
+    add "Menu_War_Name_1~&6Search Guild To Fight" to {_list::*}     
+    add "Menu_War_Lore_1~&7Click here to find guild to fight." to {_list::*}        
+    add "Menu_War_Name_2~&6War Statistics" to {_list::*}        
+    add "Menu_War_Name_3~&6Top Guilds" to {_list::*}        
+    add "Menu_War_Lore_3~&7Click here to see top guilds." to {_list::*}     
+    add "Disabled_Chat~&7You disabled guild chat mode. Your messages can see by all players." to {_list::*}     
+    add "Enabled_Chat~&7You enabled guild chat mode. Your messages can see by only guild members." to {_list::*}    
+    add "Guild_Chat~&7[GC]" to {_list::*}   
+    add "Number_Online~&8(&a{PLAYER} &7online&8)" to {_list::*}     
+    add "Claimed_Land~Claimed Land" to {_list::*}       
+    add "Claimed_Land_Lore~||&7Location: &f{LOC}||||&eClick to teleport to this claim." to {_list::*}       
+    add "ClaimName_Usage~&7Use &e/sg claimname <name> &7for edit name of where you at chunk." to {_list::*} 
+    add "ClaimName_Changed~&7Name of claim located at &e{LOC} &7changed to &6{NAME} &7by &9{BY}&7." to {_list::*}               
+    add "Arena_Created~&7Arena created: &e{ARENA}" to {_list::*}
+    add "Arena_Exists~&7There is already an arena in this name." to {_list::*}
+    add "Enter_Arena_Name~&7Enter the arena name." to {_list::*}
+    add "No_Arena~&7There is no such arena." to {_list::*}
+    add "Arena_Removed~&7Arena removed: &e{ARENA}" to {_list::*}
+    add "Enter_Setspawn_Type~&7You must enter team type. (1 or 2)" to {_list::*}
+    add "Setspawn_Done~&eTeam-{TYPE}&7's spawnpoint of &a{ARENA} &7has been set." to {_list::*}
+    add "Lobby_Done~&7The lobby has been set to where you at. Players will teleported here after game end." to {_list::*}
+    add "Enemy_War_Minimum~&7This guild has &e{ONLINE} &7online member(s). (Minimum is {MINIMUM})" to {_list::*}
+    add "You_War_Minimum~&7You have &e{ONLINE} &7online member(s). (Minimum is {MINIMUM})" to {_list::*}
+    add "Enemy_Guild_In_War~&7This guild is in the war." to {_list::*}
+    add "Your_Guild_In_War~&7Your guild is in the war." to {_list::*}
+    add "Cannot_War_Yourself~&7You can't make war with yourself." to {_list::*}
+    add "War_Invite_Send~&7Your guild sent a war invitation to &c{GUILD} &7guild." to {_list::*}
+    add "War_Invite_GUI~War Invitation" to {_list::*}
+    add "War_InviteC_Accept~&6Accept and war with &c{GUILD}&6." to {_list::*}
+    add "War_InviteC_Reject~&cReject and close the menu." to {_list::*}
+    add "War_Other_Reject~&9{GUILD} &7rejected your war invitation." to {_list::*}
+    add "War_You_Reject~&7You rejected &9{GUILD}&7's war invitation." to {_list::*}
+    add "No_Available_Arena~&7No available arena found." to {_list::*}
+    add "War_Starting_Timer~&9{GUILD1} &7vs. &c{GUILD2} &7will be started in &e{SECONDS} &7second(s). Plz don't leave or will be regarded as abandoning this game." to {_list::*}
+    add "War_Started~&7The war of &9{GUILD1} &7vs. &c{GUILD2} &7is started. Good luck warriors!" to {_list::*}
+    add "War_End_Timer~&7War will be ended in &e{MINUTES} &7minute(s)." to {_list::*}
+    add "Game_Finished_Time~&7Time is over, no one won." to {_list::*}
+    add "No_Command_War~&7You can't use commands while you're in war." to {_list::*}
+    add "War_Win~&7The war of &9{GUILD1} &7vs. &c{GUILD2} &7has ended. &9{GUILD1} &7won the war." to {_list::*}
+    add "War_Offline_Win~&7The offline war of &9{GUILD1} &7vs. &c{GUILD2} &7has ended. &9{GUILD1} &7won the war. &c{GUILD2} &7got shield for {DAY} day(s)." to {_list::*}
+    add "New_Division~&7Your guild's division has changed to &r{NEWDIVISION} &7from &r{OLDDIVISION}&7." to {_list::*}
+    add "War_Points_Add~&7Your guild won the war against &c{GUILD} &7and gained &a+{POINTS} ✪&7." to {_list::*}
+    add "War_Points_Lose~&7Your guild lose the war against &9{GUILD} &7and lost &c-{POINTS} ✪&7." to {_list::*}
+    add "Arena_Debug~&7Arena &a{ARENA} &7has restarted." to {_list::*}
+    add "No_Arena_Found~&7No arena found." to {_list::*}
+    add "Arena_Guilds~&7Arena Guilds: &f" to {_list::*}
+    add "Arena_TimeLeft~&7Time Left: &f" to {_list::*}
+    add "Status_Text_0~&a&lWAITING" to {_list::*}
+    add "Status_Text_1~&e&lINGAME" to {_list::*}
+    add "Status_Text_2~&c&lCLOSED" to {_list::*}
+    add "Status_Text_3~&4&lRESTARTING" to {_list::*}
+    add "RankStar_Leader~&b✯ " to {_list::*}
+    add "RankStar_General~&a⚝ " to {_list::*}
+    add "RankStar_Captain~&d★ " to {_list::*}
+    add "RankStar_Member~" to {_list::*}
+    add "Claim_Limit~&7You can't claim more." to {_list::*}
+    add "Death_Broadcast~&3[ {VGUILD} ] &9{VICTIM}&7 killed by &6[ {AGUILD} ] &e{ATTACKER}" to {_list::*}
+    add "Death_Gold_Loss~Your guild loss &4-{GOLD} Gold &7because &7{RANK} {PLAYER}&7 died by someone." to {_list::*}
+    add "Buildings_Broadcast_TNT~§7TNTs won't explode in your claimed lands." to {_list::*}
+    add "Click_To_Teleport~&7Click here to teleport." to {_list::*} 
+    add "Click_To_Select_Color~&fClick me to select this as your dye." to {_list::*}        
+    add "Click_To_Dye_Here~Click me to dye here." to {_list::*}     
+    add "Save_Emblem_Lore~&fClick me to save and apply emblem." to {_list::*}       
+    add "Reset_Emblem_Lore~&fClick me to clear your draft." to {_list::*}
+    add "Use_Emblem_Lore~&fClick me to edit emblem of your guild." to {_list::*}
+    add "Wilderness_Title~§2§l§nWildness§r §2§l☁" to {_list::*}
+    add "Wilderness_Sub_Title~§7Enjoy wildness!" to {_list::*}
+    add "Home_Title~§6§l§nHome&r §6§l✉" to {_list::*}
+    add "Home_Sub_Title~§7Welcome back to home!" to {_list::*}
+    add "Other_Guild_Title~§4§l§n{GUILD}§r §4§l☠" to {_list::*}
+    add "Other_Guild_Sub_Title~§7Another guild is here.Be careful!" to {_list::*}
+    add "Emblem_Menu~&0&l  » GUILD EMBLEM" to {_list::*}
+    add "Save_Emblem_Button~&2&l[&2✓&2&l]&r" to {_list::*}      
+    add "Reset_Emblem_Button~&4&l[&4✘&4&l]" to {_list::*}
+    add "Use_Emblem_Button~&0&l[&0✎&0&l]" to {_list::*}
+    add "Player_No_Guild~&7This player does not have a guild." to {_list::*}
+    add "Menu_Donate_GUI~Put Resources To Here" to {_list::*}
+    add "Enter_Region_Name~&7Enter the WorldGuard's region name." to {_list::*}     
+    add "No_Region~&7No WorldGuard region founded in this name." to {_list::*}          
+    add "Region_Allowed~&7You allowed &a{REGION} &7WorldGuard region to give access to create guilds on region." to {_list::*}  
+    add "Region_Disallowed~&7You disallowed &c{REGION} &7WorldGuard region to give access to create guilds on region." to {_list::*}        
+    add "Already_Ally~&7This guild is already your ally." to {_list::*}     
+    add "Wait_Ally~&7You need to wait &a{TIME} &7to add/remove ally." to {_list::*}     
+    add "Added_Ally~&a{GUILD} &7guild and &9{ALLY} &7guild are allies now." to {_list::*}   
+    add "Ally_GUI~Ally Invitation" to {_list::*}        
+    add "Ally_InviteC_Accept~&6Accept and be ally with &e{GUILD}&6." to {_list::*}      
+    add "Ally_InviteC_Lore~||&7Allies can't attack each other." to {_list::*}       
+    add "Ally_Other_Reject~&9{GUILD} &7rejected your ally invitation." to {_list::*}
+    add "Ally_You_Reject~&7You rejected &9{GUILD}&7's ally invitation." to {_list::*}
+    add "No_Ally~&7This guild is not in your ally list." to {_list::*}  
+    add "Removed_Ally~&a{GUILD} &7guild and &c{ENEMY} &7guild are no longer allies." to {_list::*}      
+    add "Cannot_War_Allies~&7You cannot fight with your allies guilds." to {_list::*}       
+    add "Cannot_Claim_Allies~&7This land owned by your guild ally. You can't claim this land." to {_list::*}        
+    add "Allies_GUI~Allies List" to {_list::*}      
+    add "Allies_Lore~||&7Date: &e{DATE}||&7Added By: &e{BY}||||&7&oUse &c&o'/g enemy {GUILD}' &7&oto remove." to {_list::*}     
+    add "Ally_Yourself~&7You can't make alliance with yourself." to {_list::*}  
+    add "Help_Pages_4::Line_1~&e/guilds ally <guild> &8- &7Sets a guild to be your ally." to {_list::*}
+    add "Help_Pages_4::Line_2~&e/guilds enemy <guild> &8- &7Remove a guild from your ally list." to {_list::*}
+    add "Help_Pages_4::Line_3~&e/guilds allies &8- &7Shows your guild's allies." to {_list::*}      
+    add "Tournaments_Name~Tournaments" to {_list::*}
+    add "Tournaments_Status_Off_Name~&4⚠" to {_list::*}
+    add "Tournaments_Status_Off_Lore~||&7The Tournament is not active||&7at the moment and try again later." to {_list::*}
+    add "Tournaments_In_Name~&6&nTournament Information" to {_list::*}
+    add "Tournaments_In_Lore~||&7Waiting for an opponent..." to {_list::*}
+    add "Tournaments_Opponent_Lore~||&7Your opponent is &c{GUILD} &7guild.||&7You can check stats of this||&7guild with &e/g info &7command." to {_list::*}
+    add "Tournaments_Join_Name~&6&nJoin the Tournament" to {_list::*}
+    add "Tournaments_Join_Lore~||&7Click to join the Tournament." to {_list::*}
+    add "Tournaments_List~&6&nTournament Matches" to {_list::*}
+    add "Tournaments_Guild_List~&6&nTournament Guilds" to {_list::*}
+    add "Tournaments_List_Waiting~&7&o(waiting for guilds...)" to {_list::*}
+    add "Tournaments_Ingame_Lore~&8(&7&oin progress&8)" to {_list::*}
+    add "Tournaments_Waiting_Lore~&8(&7&owaiting&8)" to {_list::*}
+    add "Tournaments_Won_Lore~&8(&f{G}&8)" to {_list::*}
+    add "Tournaments_Eliminated_Lore~||&7The tournament has begun||&7and you can't join at the moment.||&7See you soon in a new Tournament." to {_list::*}
+    add "Tournaments_Already_Enabled~&7The tournament is already enabled." to {_list::*}
+    add "Tournament_Joins_Closed~&7The tournament matches has been set. Check it with tournament menu." to {_list::*}
+    add "Your_Guild_Already_Tournament~&7Your guild is already in the Tournament." to {_list::*}
+    add "Tournament_Not_Active~&7The tournament is not active at the moment." to {_list::*}
+    add "Cant_Join_Closed~&7Your guild can't join the Tournament at the moment." to {_list::*}
+    add "Guild_Joined_Tournament~&a{GUILD} &7has joined to tournament. &8[&e{ALL} joined&8]" to {_list::*}
+    add "Tournament_Not_Enough~&7Tournament has closed because there were not enough teams to participate in the Tournament." to {_list::*}
+    add "You_Cant_War_Tournament~&7Sorry, your guild can't war while tournament is active." to {_list::*}
+    add "Tournaments_You_Won_Waiting~||&7Your guild won a battle so.||&7you're waiting for new match." to {_list::*}
+    add "Guild_Removed_Tournament~&7Your guild has been removed from tournament due to 'guild count must be double'" to {_list::*}
+    add "Tournament_Won_Broadcast~&a{GUILD} &7won the Tournament and gained &a+{POINTS} ✪&7." to {_list::*}
+    add "Allow_Or_Disallow~&7Use &a'/sgallow region allow <region>' &7to give access create guilds on region. For delete this use &c'/sgadmin region disallow <region>'&7. To check regions use &e'/sgadmin region list'&7." to {_list::*}  
+    add "No_Region_Found~&7There are no regions allowed." to {_list::*}     
+    add "Region_List~          &a&nAllowed Region List" to {_list::*}       
+    add "Top_Guilds~Top Guilds" to {_list::*}   
+    add "War_Top_GUI~&7Click to check top guilds list." to {_list::*}   
+    add "War_Death_0~&9{VICTIM} ({VGUILD}) &7has died and eliminated from war." to {_list::*}
+    add "Divisions_0~&8Bronze" to {_list::*}        
+    add "Divisions_1~&7Silver" to {_list::*}        
+    add "Divisions_2~&eGold" to {_list::*}  
+    add "Divisions_3~&dCrystal" to {_list::*}       
+    add "Divisions_4~&bMaster" to {_list::*}        
+    add "Divisions_5~&cChampionship" to {_list::*}  
+    add "Menu_Allies_Name~&6Guild Allies" to {_list::*} 
+    add "Menu_Allies_Lore~||&7Click to check your guild's allies." to {_list::*}    
+    add "Guild_Home_Menu_Name~&6Guild Home" to {_list::*}   
+    add "Guild_Home_Menu_Lore~||&7Click to teleport your guild's home." to {_list::*}   
+    add "Tournament_Cooldown~&7Matches will be set in &e{SECOND} &7second(s). &7Your guild can join with '&e/g&7' command." to {_list::*}
+    add "You_Need_More_Resource~&7You need more &f{AMOUNT} &7of {RESOURCE}&r &7to do this." to {_list::*}       
+    add "Menu_War_Lore_New~&eGuild;||&7 → Division: &f{LEVEL}||&7 → Points: &f{POINTS} ✪||&7 → Start Items: &f{ITEMS}||||&ePvP;||&7 → Kills: &f{KILLS}||&7 → Deaths: &f{DEATHS}" to {_list::*}
+    add "Claim_Name~&7&o(You can change this claim's name||&7&ousing &e/g claimname &7&ocommand.)" to {_list::*}    
+    add "Resource_Wood~&6&nWood Resource" to {_list::*} 
+    add "Resource_Stone~&7&nStone Resource" to {_list::*}   
+    add "Resource_Iron~&f&nIron Resource" to {_list::*} 
+    add "Resource_Gold~&e&nGold Resource" to {_list::*} 
+    add "Resource_Diamond~&b&nDiamond Resource" to {_list::*}   
+    add "Resource_Wool~&3&nWool Resource" to {_list::*} 
+    add "Resource_Worker~&e&nWorker" to {_list::*}  
+    add "Resource_Unicode_Wood~✚" to {_list::*} 
+    add "Resource_Unicode_Stone~⚒" to {_list::*}    
+    add "Resource_Unicode_Iron~ℓ" to {_list::*} 
+    add "Resource_Unicode_Gold~⊂" to {_list::*} 
+    add "Resource_Unicode_Diamond~∑" to {_list::*}  
+    add "Resource_Unicode_Wool~⎈" to {_list::*} 
+    add "Resource_Unicode_Worker~☯" to {_list::*}   
+    add "Resource_Color_Wood~§6" to {_list::*}   
+    add "Resource_Color_Stone~§7" to {_list::*}  
+    add "Resource_Color_Iron~§f" to {_list::*}  
+    add "Resource_Color_Gold~§e" to {_list::*}   
+    add "Resource_Color_Diamond~§b" to {_list::*}    
+    add "Resource_Color_Wool~§3" to {_list::*}   
+    add "Resource_Color_Worker~§e" to {_list::*}    
+    add "Resource_Donate_Lore~&7Click to donate resources." to {_list::*}
+    add "Buildings_GUI~Guild Buildings" to {_list::*}
+    add "Buildings_Name_Townhall~&6Townhall" to {_list::*}
+    add "Buildings_Name_Barrack~&6Barrack" to {_list::*}
+    add "Buildings_Name_Storage~&6Storage" to {_list::*}
+    add "Buildings_Name_Alchemy~&6Alchemy" to {_list::*}    
+    add "Building_Status_0~Ready to upgrade" to {_list::*}
+    add "Building_Status_1~Upgrading..." to {_list::*}
+    add "Building_Status_2~Waiting complete action..." to {_list::*}
+    add "Buildings_Lore~||&eBuilding Level: &f{LEVEL}||&eStatus: &f{STATUS}||{TIMESHOW}||||&7Click to see information page." to {_list::*}
+    add "Buildings_Time_Remaining~||&eTime remaining: &f{TIME}" to {_list::*}   
+    add "Allies_4_Lore~||&7Date: &e{DATE}||&7Added By: &e{BY}||||&7&oUse &c&o'/g enemy {GUILD}' &7&oto remove." to {_list::*}
+    add "Upgrade_Emblem_Button~&a&l【▲】" to {_list::*}   
+    add "Quit_Emblem_Button~&4&l【⏎】" to {_list::*}  
+    add "Timer_Emblem_Button~&c&l【⌛】" to {_list::*} 
+    add "Done_Emblem_Button~&2&l【✔】" to {_list::*}  
+    add "Max_Emblem_Button~&0&l【✕】" to {_list::*}   
+    add "Upgrade_Emblem_Lore~&fClick to upgrade this building." to {_list::*}   
+    add "Quit_Emblem_Lore~&fClick to return to menu." to {_list::*} 
+    add "Done_Emblem_Lore~&fClick to complete upgrade of building." to {_list::*}   
+    add "Enter_Building_Type~&7Enter building's name. (Townhall/Barrack/Storage/Alchemy)" to {_list::*} 
+    add "Header_Build_Book~&8&l  » Building Info:" to {_list::*}    
+    add "Book_Build_Name~&8Build Name: &0" to {_list::*}    
+    add "Book_Build_Level~&8Build Tier: &0" to {_list::*}   
+    add "Building_Upgrade~&7{RANK} {PLAYER}&7, upgraded {BUILD} &7to level &e{NUMBER}&7." to {_list::*}
+    add "Building_Upgrade_Guild~&a{GUILD}&7, upgraded {BUILD} &7to level &e{NUMBER}&7." to {_list::*}
+    add "Book_Build_Requires~&8Build Requirements:" to {_list::*}   
+    add "Book_Required_Text~&8Required:&f " to {_list::*}   
+    add "Book_Have_Text~&8You Have:&f " to {_list::*}   
+    add "Alchemy_Menu_Price~ &8 → &7Price: &f{AMOUNT}" to {_list::*}
+    add "Build_Max~&7This building has reached last level." to {_list::*}
+    add "Build_Started~{RANK} {PLAYER} &7has started build construction for &e{BUILD} &7to tier &e{LEVEL}&7. It will be done in &a{TIME}&7." to {_list::*}  
+    add "Build_Wait~&7Upgrade will be completed in &e{TIME}&7." to {_list::*}
+    add "You_Cant_Build_Here~&7You can't make buildings on &e{BUILD} &7zone." to {_list::*}
+    add "You_Cant_Alchemy~&7You can't use &9Alchemy&7 because you need to make &9Alchemy &7to &6Level I&7." to {_list::*}
+    add "Land_Protection~&7System will create a base so please select empty land." to {_list::*}
+    add "Creation_Point~Creation Point" to {_list::*}
+    add "Romen_Num_0~0" to {_list::*}
+    add "Building_Status_3~Max Level" to {_list::*}
+    add "Barrack_Upgrade_Item_0~No Items" to {_list::*}
+    add "Join_Status_Name_0~&c&lPrivate" to {_list::*}
+    add "Join_Status_Lore_0~&4&o'Only invited players can join the guild.'" to {_list::*}
+    add "Join_Status_Name_1~&a&lPublic" to {_list::*}
+    add "Join_Status_Lore_1~&2&o'People can join the guild without invite.'" to {_list::*}
+    add "Join_Status_Name_2~&e&lApproval" to {_list::*}
+    add "Join_Status_Lore_2~&6&o'People need to get approval to join the guild.'" to {_list::*}
+    add "Notifier_Status_Name_0~&a&lShow" to {_list::*}
+    add "Notifier_Status_Lore_0~&2&o'Notifiers will be shown when you enter guilds' lands.'" to {_list::*}
+    add "Notifier_Status_Name_1~&c&lHide" to {_list::*}
+    add "Notifier_Status_Lore_1~&4&o'Notifiers will be hidden when you enter guilds' lands.'" to {_list::*}
+    add "ChangeJoinStatus_Lore~||||&7Click here to change the condition." to {_list::*}
+    add "ChangeNotifierStatus_Lore~||||&7Click here to change the condition." to {_list::*}
+    add "This_Guild_Is_Not_Public~&7This guild is not public, they must invite you." to {_list::*}
+    add "Resource_Worker_Time_Ready~||&7Worker is &aready &7to do buildings now." to {_list::*} 
+    add "Resource_Worker_Time_Rest~||&7Worker needs to rest for make new builds.||&c{TIME} &7left to be ready..." to {_list::*} 
+    add "Worker_Rest~&7Worker needs to rest for &a{TIME} &7to make new buildings." to {_list::*}
+    add "Resource_Item_Set_Success~&7Resource item has been set to your tool" to {_list::*}
+    add "Resource_Item_Set_Failure~&7Resource item can not be set to air" to {_list::*}
+    add "Resource_Does_Not_Exist~&7Usage: &e/sgadmin donatetype <Wood/Wool/Stone/Iron/Gold/Diamond>" to {_list::*}
+    add "Resource_Give_Usage~&7Usage: &e/sgadmin resource <guild> <resource> <add/remove/set> <amount>" to {_list::*}
+    add "Resource_Give_Admin~&7You added &a{NUMBER} &7to &f{GUILD}&7's {RESOURCE}&7." to {_list::*}
+    add "Resource_Remove_Admin~&7You removed &c{NUMBER} &7from &f{GUILD}&7's {RESOURCE}&7." to {_list::*}
+    add "Resource_Set_Admin~&7You set &f{GUILD}&7's {RESOURCE} &7to &a{NUMBER}&7." to {_list::*}
+    add "Disabled_ChatSpy~&7You've disabled guild chat spy." to {_list::*}
+    add "Enabled_ChatSpy~&7You've enabled guild chat spy." to {_list::*}
+    add "Holo_Message_Claim~&e&l- {GUILD} HAS CLAIMED HERE -;&7Claimer: &f{PLAYER};&7Total Chunks: &f{CHUNKS};" to {_list::*}
+    add "Holo_Message_Build~&6&l- {BUILD} BUILDING AREA -;&7Owner Guild: &f{GUILD};&7Finish Date: &f{DATE};" to {_list::*}
+    add "Guild_Vault_Header~Guild Vault" to {_list::*}
+    add "You_Cant_Vault~&7You can't use &eGuild Vault&7 because you need to make &9Storage &7to &6Level I&7." to {_list::*}
+    add "Building_Desc_Townhall~Townhall increases your max-member and protects you from TNT(s)" to {_list::*}   
+    add "Building_Desc_Barrack~Barracks gives you better items at guild wars to you can win wars easily." to {_list::*}  
+    add "Building_Desc_Storage~Storage holds resources of guild, you can upgrade if you want more resource capacity." to {_list::*}  
+    add "Building_Desc_Alchemy~Alchemy gives you more effective powers to use, upgrade it to get better." to {_list::*} 
+    add "Guild_Vault_ItemName~&6Guild Vault" to {_list::*}
+    add "Guild_Vault_ItemLore~||&7Click to open guild's vault." to {_list::*}
+    add "Help_Pages_4::Line_4~&e/guilds vault &8- &7Opens your guild's vault." to {_list::*}    
+    add "PageAPI_Header_0~Guilds List" to {_list::*}
+    add "PageAPI_Header_1~Claims List" to {_list::*}        
+    add "PageAPI_Header_2~Search Guild" to {_list::*}
+    add "PageAPI_Header_21~Search Guild > Without Warshield" to {_list::*}
+    add "PageAPI_Header_22~Search Guild > Online" to {_list::*}
+    add "PageAPI_Header_3~Guild Members" to {_list::*}
+    add "PageAPI_Header_4~Allies List" to {_list::*}        
+    add "PageAPI_Header_5~Guilds List" to {_list::*}
+    add "PageAPI_Header_51~Guilds List > Public" to {_list::*}
+    add "PageAPI_Header_52~Guilds List > Need Application" to {_list::*}
+    add "PageAPI_Header_6~Your Friends" to {_list::*}
+    add "PageAPI_Header_7~Reserve Players" to {_list::*}
+    add "PageAPI_NoVariable_0~&c&nNo Guilds Found." to {_list::*}       
+    add "PageAPI_NoVariable_1~&c&nNo Claims Found." to {_list::*}       
+    add "PageAPI_NoVariable_2~&c&nNo Guilds Found To War." to {_list::*}
+    add "PageAPI_NoVariable_21~&c&nNo Guilds Without War Shield Found." to {_list::*}   
+    add "PageAPI_NoVariable_22~&c&nNo Online Guilds Found." to {_list::*} 
+    add "PageAPI_NoVariable_3~&c&nNo Players Found." to {_list::*}
+    add "PageAPI_NoVariable_4~&c&nNo Guild Allies Found." to {_list::*}
+    add "PageAPI_NoVariable_5~&c&nNo Guilds Found To Join." to {_list::*}
+    add "PageAPI_NoVariable_51~&c&nNo Guilds Found To Join." to {_list::*}
+    add "PageAPI_NoVariable_52~&c&nNo Guilds Found To Join." to {_list::*}
+    add "PageAPI_NoVariable_6~&c&nYou don't have any friends." to {_list::*} 
+    add "PageAPI_NoVariable_7~&c&nNo Players Found." to {_list::*}
+    add "PageAPI_NextPage_Name~&aNext Page" to {_list::*}
+    add "PageAPI_PreviousPage_Name~&aPrevious Page" to {_list::*}
+    add "PageAPI_MainPage_Name~&aMain Page" to {_list::*}   
+    add "Menu_PreviousMenu_Name~&cPrevious Menu" to {_list::*}  
+    add "Dont_Have_Money_To_Create~&7You do not have enough money in your balance to create the guild. You must have &e${NUMBER}&7." to {_list::*}
+    add "RankGUI_PermName_Disband~&f&nDisband Guild" to {_list::*}
+    add "RankGUI_PermName_Upgrade~&f&nUpgrade Guild Buildings" to {_list::*}
+    add "RankGUI_PermName_Alchemy~&f&nUse Guild Alchemy" to {_list::*}
+    add "RankGUI_PermName_Vault~&f&nUse Guild Vault" to {_list::*}
+    add "RankGUI_PermName_Kick~&f&nKick Guild Members" to {_list::*}
+    add "RankGUI_PermName_Rank~&f&nChange Guild Members Permissions" to {_list::*}
+    add "RankGUI_PermName_Condition~&f&nChange Join Condition" to {_list::*}
+    add "RankGUI_PermName_Sethome~&f&nSet Guild Home" to {_list::*}
+    add "RankGUI_PermName_Claim~&f&nClaim / Unclaim / Claim Names" to {_list::*}
+    add "RankGUI_PermName_Emblem~&f&nGuild Emblem" to {_list::*}
+    add "RankGUI_PermName_Invite~&f&nInvite Players" to {_list::*}
+    add "RankGUI_PermName_Ally~&f&nAlly / Enemy" to {_list::*}
+    add "RankGUI_PermName_War~&f&nDeclare Guild War" to {_list::*}
+    add "RankGUI_PermName_Donate~&f&nDonate Resource To Guild" to {_list::*}
+    add "RankGUI_PermName_Break~&f&nBreak Blocks at Guild Claimed Lands" to {_list::*}
+    add "RankGUI_PermName_Place~&f&nPlace Blocks at Guild Claimed Lands" to {_list::*}
+    add "RankGUI_PermName_Interact~&f&nInteract at Guild Claimed Lands" to {_list::*}
+    add "RankGUI_Header~Rank Settings" to {_list::*}
+    add "RankGUI_CurrentRank~||&7Current Rank: &f{RANK}||||&7Player Permissions:||" to {_list::*}
+    add "RankGUI_UsePresetRank~||&7Click to use this pre-set rank." to {_list::*}
+    add "RankGUI_ChangePermission_On~||&7Click to give this permission." to {_list::*}
+    add "RankGUI_ChangePermission_Off~||&7Click to take this permission." to {_list::*}
+    add "Member_Information_Kick~||||&7&nLEFT-CLICK with SHIFT to...||  &fkick player from guild." to {_list::*}
+    add "Member_Information_Rank~||||&7&nLEFT-CLICK to...||  &fchange player's rank." to {_list::*}
+    add "Tournament_Started_Broadcast~&7The guild tournament has enabled! Join with '&e/g&7' command." to {_list::*}
+    add "Donated_List_New~&6 → Wood: &f{DWOOD}||&7 → Stone: &f{DSTONE}||&f → Iron: &f{DIRON}||&e → Gold: &f{DGOLD}||&b → Diamond: &f{DDIAMOND}||&3 → Wool: &f{DWOOL}" to {_list::*} 
+    add "Vault_Using~&7Vault is using by &a{PLAYER} &7right now." to {_list::*}
+    add "Top_Calc_Time_Name~&a&nTime Left to Refresh Top:" to {_list::*}
+    add "War_Death_1_New~&f{ATTACKER} ({AGUILD}) &c⚔ &f{VICTIM} ({VGUILD}) &7[+{POINTS} ☆]" to {_list::*}
+    add "War_Points_New~&9☆ {AGUILD}: {APOINTS} &7VS &c{VGUILD}: {VPOINTS} ☆" to {_list::*}
+    add "Score_Prefix_New~&6&l&nSUPERGUILDS" to {_list::*}
+    add "ScoreBrd_1_New~&e⊙ Time: &f{TIME}" to {_list::*}               
+    add "ScoreBrd_2_New~&9➙ {GUILD1}:" to {_list::*}        
+    add "ScoreBrd_3_New~&f{PLY1}/{MAX} ☆" to {_list::*}     
+    add "ScoreBrd_4_New~&c➙ {GUILD2}:" to {_list::*}        
+    add "ScoreBrd_5_New~&f{PLY2}/{MAX} ☆&f" to {_list::*}
+    add "Guild_Management_PlayerInfo_New~||&eRank: &f{RANK}||&eJoin Date: &f{DATE}||&eWar;||&7 → Kills: &f{WARKILLS}||&7 → Deaths: &f{WARDEATHS}||&eDonated;||{DONATEINFO}||||&fClick to see races menu." to {_list::*}
+    add "PlayerStats_1~||&eGuild: &f{GUILD}||&eRank: &f{RANK}||&eRace: &f{RACE}||&eJoin Date: &f{DATE}||&eWar;||&7 → Kills: &f{KILLS}||&7 → Deaths: &f{DEATHS}||||&eDonated to this guild;||{DONATEINFO}" to {_list::*}
+    add "PlayerStats_2~||&ePlayer: &f{PLAYER}||&ePvP;||&7 → Kills: &f{KILLS}||&7 → Deaths: &f{DEATHS}||&7 → KDA: &f{KDA}||&eDonated to all;||{DONATEINFO}" to {_list::*}
+    add "PlayerStats_3~||&eHealth: &f{HEALTH}/10||&eHunger: &f{HUNGER}/10||&eLocation: &f{LOCATION}" to {_list::*}
+    add "PlayerStats_4~||&7Player is not online.||&eLast Seen: &f{SEEN}" to {_list::*}
+    add "RaceSelectGUI_Header~Select A Race" to {_list::*}  
+    add "RaceSelectGUI_Select~||||&fClick here to select this race." to {_list::*}
+    add "RaceSelectGUI_Select_2~||||&fClick here to change your race." to {_list::*}
+    add "RaceSelectGUI_Features~&aRace Effects:" to {_list::*}
+    add "RaceSelectGUI_Features_0~||&7You won't able to use||&7effects of your race.||||&fClick here to take powers." to {_list::*}
+    add "RaceSelectGUI_Features_1~||&7You are currently using||&7effects of your race.||||&fClick here to disable powers." to {_list::*}
+    add "RaceSelectGUI_Features_2~||&7You must select a race||&7to use effects of race." to {_list::*}
+    add "RaceSelectGUI_Info~&aInformation:" to {_list::*}
+    add "RaceSelectGUI_Info_1~&7Your Race: &f{RACE}||&7Rights to change: &f{NUM}||||&7You can't create or join||&7guild without a race." to {_list::*}  
+    add "Race_Left_No~&7You can't change your race anymore." to {_list::*}
+    add "Race_Selected~&7Gods accepted &a{PLAYER}&7's request and made him &r{RACE}&7." to {_list::*}
+    add "Select_Race~&7You need to select a race to do this. &6(/g race)" to {_list::*}
+    add "MemberInformation_Lore~&e(Seen: &f{SEEN}&e)||||&eRank: &f{RANK}||&eRace: &f{RACE}||&eJoin Date: &f{DATE}||&eWar;||&7 → Kills: &f{WARKILLS}||&7 → Deaths: &f{WARDEATHS}||&eDonated;||{DONATEINFO}||||&7&nRIGHT-CLICK to...||  &fcheck player's details.{CRANK}{CKICK}" to {_list::*}
+    add "ReserveInformation_Lore~&eApplication Date: &f{DATE}||||&7&nRIGHT-CLICK to...||  &faccept this player's application.||||&7&nLEFT-CLICK to...||  &freject this player's application.||||&7&nMIDDLE-CLICK to...||  &fcheck player's details." to {_list::*}
+    add "Race_Permission~&7You don't have permission to enable/disable effects of race." to {_list::*}
+    add "Race_Cooldown~&7You need to wait &c{TIME} &7to change your race again." to {_list::*}
+    add "Guild_Chat_Spy_Ops~GC SPY" to {_list::*}
+    add "Guild_Chat_Prefix~&7GUILD CHANNEL [ {PLAYER} > ]" to {_list::*}
+    add "Break_Claimed_Areas_Only~&7You only edit claimed zones by guilds." to {_list::*}
+    add "Place_Claimed_Areas_Only~&7You only edit claimed zones by guilds." to {_list::*} 
+    add "Interact_Claimed_Areas_Only~&7You only edit claimed zones by guilds." to {_list::*} 
+    add "You_Cant_War_2~&7You can't guild war because typed guild has to make &9Barrack &7to &6Level I&7." to {_list::*}
+    add "TimeSpanText_Year~yr" to {_list::*}        
+    add "TimeSpanText_Month~mo" to {_list::*}       
+    add "TimeSpanText_Day~d" to {_list::*}  
+    add "TimeSpanText_Hour~hr" to {_list::*}        
+    add "TimeSpanText_Minute~min" to {_list::*}     
+    add "TimeSpanText_Second~s" to {_list::*}
+    add "Enemy_War_Temporary_Shield~&7This guild has shield for instant guild war. Their war shield expires in &c{EXPIRE}&7." to {_list::*}
+    add "Enemy_War_Shield~&7This guild has War Shield enabled! You cannot start a guild war with &c{GUILD} &7guild." to {_list::*}
+    add "War_Invite_Send_2_New~&7Good luck warriors! Your guild starts a guild war with &c{GUILD} &7guild." to {_list::*}
+    add "War_Invite_Send_3_New~&7Prepare right now! &c{GUILD} &7starts a guild war with you." to {_list::*}
+    add "War_Shield_Enable_Name~&aWar Shield Enabled" to {_list::*} 
+    add "War_Shield_Enable_Lore~||&7You lose a war and gain a &9war||&9shield &7for instant guild wars.||||&7Other guilds can not declare war to you||&7while you have &9war shield &7enabled.||||&9War Shield &7expires in &c{TIME}&7." to {_list::*} 
+    add "War_Shield_Disable_Name~&cNo War Shield" to {_list::*} 
+    add "War_Shield_Disable_Lore~||&7You don't have a &9war shield&7.||&7So any guild can declare a war to you.||&7If you lose you will gain a &9war shield&7." to {_list::*} 
+    add "Click_To_Info_New~||&7Leader: &f{LEADER}||&7War Points: &f{POINTS} ✪||&7Division: &f{LEVEL}||||{EMBLEM}||||&eClick to see information of this guild." to {_list::*}    
+    add "Click_To_War_New~||&7Leader: &f{LEADER}||&7War Points: &f{POINTS} ✪||&7Division: &f{LEVEL}||||{EMBLEM}||||&eClick to war with this guild." to {_list::*}   
+    add "Click_To_Join~||&7Leader: &f{LEADER}||&7War Points: &f{POINTS} ✪||&7Division: &f{LEVEL}||||{EMBLEM}||||&eClick to join to this guild." to {_list::*}
+    add "Click_To_Join_New~||&7Leader: &f{LEADER}||&7War Points: &f{POINTS} ✪||&7Division: &f{LEVEL}||||{EMBLEM}||||&eClick to join this guild." to {_list::*} 
+    add "War_Death_2_New~&c☠ &f{VICTIM} ({VGUILD}) &7[+{POINTS} ☆]" to {_list::*}
+    add "War_Death_3~&a♜ &a&lMATCH POINT!&r &a♜" to {_list::*} 
+    add "War_Start_1~&2♜&r &2&l&nGUILD WARS&r &2♜" to {_list::*} 
+    add "War_Left~&c{PLAYER} ({PLAYERGUILD}) &7left from war." to {_list::*} 
+    add "War_Shield_GUI_Lore_1~&a(War Shield Enabled)" to {_list::*} 
+    add "War_Shield_GUI_Lore_2~&c(No War Shield)" to {_list::*} 
+    add "You_Cant_War_New~&7You can't guild war because you need to make &9Barrack &7to &6Level {LEVEL}&7." to {_list::*}
+    add "No_Guild_Perm~&7You can't do this with your permissions." to {_list::*} 
+    add "WarShield_Give_Usage~&7Usage: &e/sgadmin warshield <guild name> <days (number)>&7, example: &6/sgadmin warshield Spigot 3" to {_list::*} 
+    add "WarShield_Set_Admin~&7You added &a{NUMBER} &7days of war protection to &b{GUILD}." to {_list::*} 
+    add "Land_Protection_2~&7Ground must be fully solid. (16x16)" to {_list::*}
+    add "Sent_Ally_Request~&7You sent an ally request to &e{GUILD}&7." to {_list::*}
+    add "PageAPI_Header_Search_War_Lore~||&7&nRIGHT-CLICK to...||  &fcheck online guild.||||&7&nLEFT-CLICK to...||  &fcheck guild without warshield.||||&7&nMIDDLE-CLICK to...||  &fcheck all guild." to {_list::*}
+    add "PageAPI_Header_Search_Guild_Lore~||&7&nRIGHT-CLICK to...||  &fcheck guild need application.||||&7&nLEFT-CLICK to...||  &fcheck public guild.||||&7&nMIDDLE-CLICK to...||  &fcheck all guild." to {_list::*}  
+    add "Attack_GuildMembers~&cYou can't attack your guildmates!" to {_list::*} 
+    add "Wipe_Confirm~&7Are you sure to wipe &4{GUILDS} guilds &7inactive for &c{NUMBER} days&7? If you sure, use this command again." to {_list::*}    
+    add "Wipe_Error~&7You can't wipe guilds under &c3 days &7inactivity" to {_list::*} 
+    add "Wipe_Happen~&7Wiping inactive for &c{DAYS} days&7 guilds..." to {_list::*}
+    add "Wipe_NoData~&7No guild found inactive for this day long." to {_list::*}
+    add "Wipe_Done~&7Guild wipe is done, &a{TOTAL} &7inactive guilds wiped." to {_list::*} 
+    add "Wipe_Usage~&aUsage: &7/g wipe <inactive days count>" to {_list::*} 
+    add "RaceInfo_Name_0~&fNo Race" to {_list::*}
+    add "No_Perm_Race~&7You don't have permission to be this race." to {_list::*}
+    add "Friends_MenuItemName~&6Your Friends" to {_list::*}
+    add "Friends_MenuItemLore~||&7Click to see your friends." to {_list::*}
+    add "Friends_Invited_Player~&7You sent a friend request to the player." to {_list::*}
+    add "FriendsInviteJSON~&9{PLAYER} &7has sent a friend request to you." to {_list::*} 
+    add "Friends_You_Have_Reached_Max~&7You have reached max friends limit." to {_list::*}
+    add "Friends_Not_Invited~&7This player didn't send a friend request to you." to {_list::*}
+    add "Friend_Added~&a{PLAYER} &7has accepted your friend request." to {_list::*}
+    add "Friend_Added_You~&7You accepted &a{PLAYER}&7's friend request." to {_list::*}
+    add "Friend_Reject~&c{PLAYER} &7has rejected your friend request." to {_list::*}
+    add "Friend_Reject_You~&7You rejected &c{PLAYER}&7's friend request." to {_list::*}
+    add "FriendJSONText~                &a&l[ACCEPT &a✓&a&l]&r" to {_list::*}
+    add "FriendJSONText2~                    &c&l[REJECT &c✘&c&l]" to {_list::*}
+    add "Friend_Closed_Requests~&7This player has closed invitations." to {_list::*}
+    add "Player_Is_Not_Online~&7This player is not online now." to {_list::*}
+    add "Friends_You_Already~&7You are already friends." to {_list::*}
+    add "Friends_No~&7You are not friends with this player." to {_list::*}
+    add "Friend_Removed~&7You are not friends with &c{PLAYER} &7now." to {_list::*}
+    add "Enter_Player_Name~&7Please enter the player's name" to {_list::*}
+    add "No_Yourself~&7You can't do this to yourself." to {_list::*}   
+    add "Click_To_Friend~||&7Status: &f{STATUS}||&7Guild: &f{GUILD}||&7First Add: &f{FIRST}||&7Last Login: &f{LASTLOGIN}||||&7&nRIGHT-CLICK to...||  &fcheck friend's stats.{GLORE}||||&7&nLEFT-CLICK with SHIFT to...||  &fremove friend from list." to {_list::*} 
+    add "Click_To_InviteGuild~||||&7&nRIGHT-CLICK with SHIFT to...||  &finvite friend to your guild." to {_list::*}
+    add "GuildSelectGUI_Header~Select A Way" to {_list::*}
+    add "GuildSelectGUIName_1~&6Join A Guild" to {_list::*}
+    add "GuildSelectGUIName_2~&6Get Help About Guilds" to {_list::*}
+    add "GuildSelectGUILore_1~||&7Click to join one of public guilds." to {_list::*}
+    add "GuildSelectGUILore_2~||&7Click to get help about creating guild." to {_list::*}
+    add "WarShield_SetRemove_Admin~&7You removed &c{NUMBER} &7days of war protection to &b{GUILD}." to {_list::*} 
+    add "Resource_Fill_Admin~&7You filled &b{GUILD} &7guild's all resources." to {_list::*} 
+    add "Instant_Build_Usage~&eUsage: /sgadmin buildinstant <guild> <Townhall/Barrack/Storage/Alchemy>" to {_list::*} 
+    add "Instant_Build_Must_Start~&7This guild must start building construction first." to {_list::*} 
+    add "Instant_Build_Okay~&7Done! This guild can finish the building construction now without waiting." to {_list::*} 
+    add "Friends_Make_Some_Friends~||&f&o/friends add <player> §7§oto add friends." to {_list::*} 
+    add "Connected_Chunks~&7Your claims must be connected with each other." to {_list::*} 
+    add "Tournament_Disabled~&7The Guild Tournament has been disabled." to {_list::*} 
+    add "RaceRightsAdmin_1~&7Usage: &e/sgadmin setracerights <player> <number>" to {_list::*} 
+    add "RaceRightsAdmin_2~&7You set &a{PLAYER}&7's race change rights to &e{NUMBER}&7." to {_list::*}
+    add "Done_Set_Location~{RANK} {PLAYER} &7has changed location of &e{BUILD} &7building." to {_list::*} 
+    add "Buildings_Locations_Lore~||&eBuilding Level: &f{LEVEL}||&eStatus: &f{STATUS}||||&7Click to define location of||&7this building as your position." to {_list::*}
+    add "Building_Location_Max_1~&7You need to build this building before changing location of it." to {_list::*} 
+    add "Building_Location_Header~Change Locations" to {_list::*} 
+    add "Guild_Join_Wait~&7You have to wait &e{TIME} &7to join a new guild." to {_list::*}
+    add "Enemy_Guild_Has_Shield~&7This guild has war shield.You can't war against this guild. ({EXPIRE})" to {_list::*}
+    add "Your_Guild_Has_Shield~&7This guild has war shield.You can't war against this guild. ({EXPIRE})" to {_list::*}
+    add "Enemy_leader_Not_Online~&7Guild member with this permission is not online" to {_list::*}
+    #
+    set {_c} to content of file "plugins/SUPERGUILDS/locale/%{_lang}%.yml"
+    loop {_list::*}:
+        set {_line::*} to loop-value split at "~"
+        "%{_c}%" doesn't contain "%{_line::1}%: "
+        set yaml value "Messages.%{_line::1}%" from "plugins/SUPERGUILDS/locale/%{_lang}%.yml" to "%{_line::2}%"
+    save yaml "plugins/SUPERGUILDS/locale/%{_lang}%.yml"
+    delete {SG::Messages::*}
+    set {_messages::*} to SG_yamlList("Messages", "locale/%{_lang}%")
+    loop {_messages::*}:
+        set {SG::Messages::%loop-value%} to yaml value "Messages.%loop-value%" from "plugins/SUPERGUILDS/locale/%{_lang}%.yml"
+    set {_now2} to now
+    send "[&eSUPERGUILDS&r] %{_lang}% 加载完成! (%difference between {_now} and {_now2}%)" to console
+on AsyncPlayerChatEvent:
+    SG_checkFile("Players.Guild-Name", "playerdata/%event.getPlayer().getUniqueId()%") is not "*"
+    SG_checkFile("Players.Chat-Enabled", "playerdata/%event.getPlayer().getUniqueId()%") is "true"
+    event.setCancelled(true)
+    set {_g} to SG_checkFile("Players.Guild-Name", "playerdata/%event.getPlayer().getUniqueId()%")
+    set {_prefix} to "%{SG::Messages::Guild_Chat_Prefix}%"
+    set {_rank} to SG_checkFile("Datas.Players.%event.getPlayer().getUniqueId()%.Rank", "guilds/%{_g}%")
+    replace all "{PLAYER}" with "%event.getPlayer()%" in {_prefix}
+    replace all "{RANK}" with "%{SG::Messages::Rank_%{_rank}%}%" in {_prefix}
+    set {_list::*} to SG_yamlList("Datas.Players", "guilds/%{_g}%")
+    loop {_list::*}:
+        set {_p} to SG_checkFile("Datas.Players.%loop-value%.Username", "guilds/%{_g}%") parsed as offline player
+        {_p} is online
+        send "%{_prefix}% %event.getMessage()%" to {_p}
+on join:
+    file "plugins/SUPERGUILDS/playerdata/%uuid of player%.yml" doesn't exists:
+        create file "plugins/SUPERGUILDS/playerdata/%uuid of player%.yml"
+        SG_writeFile("Players.Race", "0", "playerdata/%uuid of player%")
+        SG_writeFile("Players.Notifier", "0", "playerdata/%uuid of player%")
+    SG_checkFile("Players.Inventory-Data", "playerdata/%uuid of player%") is "true":
+        SG_playerInvAPI(player, "recover")
+    SG_checkFile("Players.Username", "playerdata/%uuid of player%") is "*":
+        SG_writeFile("Players.Username", "%player%", "playerdata/%uuid of player%")
+    SG_writeFile("Players.Teleport-Status", "*", "playerdata/%uuid of player%")
+    SG_writeFile("Players.Wipe-Command-Confirm", "*", "playerdata/%uuid of player%")
+    SG_writeFile("Players.Remove-Command-Confirm", "*", "playerdata/%uuid of player%")
+    SG_raceRegenEffect(player)
+
+on death of player:
+    SG_checkFile("Players.Guild-Name", "playerdata/%uuid of victim%") is not "*"
+    set {_vGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of victim%")
+    attacker is a player
+    # 是否有公会
+    SG_checkFile("Players.Guild-Name", "playerdata/%uuid of attacker%") is not "*"
+    set {_aGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of attacker%")
+    # 是否在对战内
+    SG_checkFile("Datas.War-Status", "guilds/%{_aGuild}%") is "*"
+    {_aGuild} is not {_vGuild}
+    set {_price} to SG_checkFile("Guild-Management.Death-Penalty-Gold", "config") parsed as integer
+    set {_vGold} to SG_checkFile("Datas.Resources.Gold.Has", "guilds/%{_vGuild}%") parsed as integer
+    SG_valueRemoveAPI("Datas.Resources.Gold.Has", {_price}, "guilds/%{_vGuild}%")
+
+    set {_msg} to {SG::Messages::Death_Broadcast}
+    set {_vname} to SG_checkFile("Datas.Name", "guilds/%{_vGuild}%")
+    set {_aname} to SG_checkFile("Datas.Name", "guilds/%{_aGuild}%")
+    replace all "{VGUILD}" with "%{_vname}%" in {_msg}
+    replace all "{AGUILD}" with "%{_aname}%" in {_msg}
+    replace all "{ATTACKER}" with "%attacker%" in {_msg}
+    replace all "{VICTIM}" with "%victim%" in {_msg}
+    replace all "{GOLD}" with "%{_price}%" in {_msg}
+    broadcast "%{SG::Messages::Prefix}% %{_msg}%"
+
+    set {_msg} to {SG::Messages::Death_Gold_Loss}
+    set {_rank} to SG_checkFile("Datas.Players.%uuid of victim%.Rank", "guilds/%{_vGuild}%")
+    set {_name} to SG_checkFile("Guild-Management.Ranks.%{_rank}%-Name", "config")
+    replace all "{PLAYER}" with "%victim%" in {_msg}
+    replace all "{GOLD}" with "%{_price}%" in {_msg}
+    replace all "{RANK}" with "%{_name}%" in {_msg}
+    SG_guildBroadcast("%{_vGuild}%", "%{_msg}%")   
+    # 执行额外指令
+    SG_checkFile("General.Executable-Commands.On-Death", "config") is not "*"
+    set {_executable} to SG_checkFile("General.Executable-Commands.On-Death", "config")
+    replace all "{VICTIM}" with "%player%" in {_executable}
+    replace all "{ATTACKER}" with "%attacker%" in {_executable}
+    execute console command "%{_executable}%"
+# 伤害相关
+on damage of player:
+    if attacker is a player:
+        victim is not attacker
+        set {_vg} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of victim%")
+        set {_ag} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of attacker%")
+        {_vg} is not "*"
+        {_ag} is not "*"
+        if "%{_ag}%" is "%{_vg}%":
+            SG_checkFile("Players.PVP", uuid of attacker) is "false" or "*"
+            send "%{SG::Messages::Prefix}% %{SG::Messages::Attack_GuildMembers}%" to attacker
+            cancel event
+        else:
+            set {_allies::*} to SG_yamlList("Datas.Allies", "guilds/%{_ag}%")
+            if {_allies::*} contains "%{_vg}%":
+                send "%{SG::Messages::Prefix}% %{SG::Messages::Cannot_War_Allies}%" to attacker 
+                cancel event
+            else:
+                set {_aLevel} to SG_checkFile("Datas.Buildings.Alchemy.Effect-3-Level", "guilds/%{_ag}%") parsed as integer
+                set {_dLevel} to SG_checkFile("Datas.Buildings.Alchemy.Effect-4-Level", "guilds/%{_vg}%") parsed as integer
+                {_aLevel} is set
+                {_dLevel} is set
+                cancel event
+                set {_damage} to damage
+                add 5 * {_aLevel} to {_damage}
+                remove 5 * {_dLevel} from {_damage}
+                damage victim by {_damage}
+    else:
+        SG_checkFile("Regions", "chunks/%chunk at location of victim%") is not "*"
+        SG_checkFile("General.Claim-Protection.Damage-Protection", "config") is "true" or "*"
+        cancel event
+# 领地相关
+on PlayerInteractEvent with priority highest:
+    event.getPlayer() doesn't have permission "guilds.admin" or "guilds.bypass"
+    "%event.getAction()%" is "RIGHT_CLICK_BLOCK" or "LEFT_CLICK_BLOCK":
+        SG_checkFile("Regions", "chunks/%event.getClickedBlock().getLocation().getChunk()%") is "*":
+            set {_eWorld::*} to SG_checkFile("General.Interact-Only-Claimed-Areas-Enabled-Worlds", "config") split at ","
+            loop {_eWorld::*}:
+                "%loop-value%" is "%world of event.getPlayer()%"
+                event.setCancelled(true)
+                exit loop
+            send "%{SG::Messages::Prefix}% %{SG::Messages::Break_Claimed_Areas_Only}%" to event.getPlayer()
+        SG_checkFile("Regions", "chunks/%event.getClickedBlock().getLocation().getChunk()%") is not "*":
+            SG_checkFile("General.Claim-Protection.Left-Click", "config") is "true" or "*"
+            SG_checkFile("General.Claim-Protection.Right-Click", "config") is "true" or "*"
+            set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of event.getPlayer()%")
+            SG_checkFile("Regions", "chunks/%event.getClickedBlock().getLocation().getChunk()%") is not "%{_pGuild}%":
+                set {_msg} to {SG::Messages::Owned_By}
+                set {_g} to SG_checkFile("Regions", "chunks/%event.getClickedBlock().getLocation().getChunk()%")
+                set {_name} to SG_checkFile("Datas.Name", "guilds/%{_g}%")
+                replace all "{GUILD}" with "%{_name}%" in {_msg}
+                send "%{SG::Messages::Prefix}% %{_msg}%" to event.getPlayer()
+                event.setCancelled(true)
+            SG_checkFile("Regions", "chunks/%event.getClickedBlock().getLocation().getChunk()%") is "%{_pGuild}%":
+                SG_rankCheck("%event.getPlayer().getUniqueId()%", "Interact") is false
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to event.getPlayer()
+                event.setCancelled(true)
+    "%event.getAction()%" = "PHYSICAL":
+        SG_checkFile("Regions", "chunks/%event.getClickedBlock().getLocation().getChunk()%") is "*":
+            set {_eWorld::*} to SG_checkFile("General.Interact-Only-Claimed-Areas-Enabled-Worlds", "config") split at ","
+            loop {_eWorld::*}:
+                "%loop-value%" is "%world of event.getPlayer()%"
+                event.setCancelled(true)
+            send "%{SG::Messages::Prefix}% %{SG::Messages::Break_Claimed_Areas_Only}%" to event.getPlayer()
+        SG_checkFile("Regions", "chunks/%event.getClickedBlock().getLocation().getChunk()%") is not "*":
+            SG_checkFile("General.Claim-Protection.Left-Click", "config") is "true" or "*"
+            SG_checkFile("General.Claim-Protection.Right-Click", "config") is "true" or "*"
+            set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of event.getPlayer()%")
+            SG_checkFile("Regions", "chunks/%event.getClickedBlock().getLocation().getChunk()%") is not "%{_pGuild}%":
+                set {_msg} to {SG::Messages::Owned_By}
+                set {_g} to SG_checkFile("Regions", "chunks/%event.getClickedBlock().getLocation().getChunk()%")
+                set {_name} to SG_checkFile("Datas.Name", "guilds/%{_g}%")
+                replace all "{GUILD}" with "%{_name}%" in {_msg}
+                send "%{SG::Messages::Prefix}% %{_msg}%" to event.getPlayer()
+                event.setCancelled(true)
+            SG_checkFile("Regions", "chunks/%event.getClickedBlock().getLocation().getChunk()%") is "%{_pGuild}%":
+                SG_rankCheck("%event.getPlayer().getUniqueId()%", "Interact") is false
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to event.getPlayer()
+                event.setCancelled(true)
+on BlockBreakEvent:
+    event.getPlayer() doesn't have permission "guilds.admin" or "guilds.bypass"
+    event.setCancelled(true)
+    SG_checkFile("Regions", "chunks/%event.getBlock().getLocation().getChunk()%") is "*":
+        set {_eWorld::*} to SG_checkFile("General.Interact-Only-Claimed-Areas-Enabled-Worlds", "config") split at ","
+        loop {_eWorld::*}:
+            "%loop-value%" is not "%world of event.getPlayer()%"
+            event.setCancelled(false)
+            stop
+        send "%{SG::Messages::Prefix}% %{SG::Messages::Break_Claimed_Areas_Only}%" to event.getPlayer()
+    SG_checkFile("Regions", "chunks/%event.getBlock().getLocation().getChunk()%") is not "*":
+        SG_checkFile("General.Claim-Protection.Left-Click", "config") is "true" or "*"
+        set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of event.getPlayer()%")
+        SG_checkFile("Regions", "chunks/%event.getBlock().getLocation().getChunk()%") is not "%{_pGuild}%":
+            set {_msg} to {SG::Messages::Owned_By}
+            set {_g} to SG_checkFile("Regions", "chunks/%event.getBlock().getLocation().getChunk()%")
+            set {_name} to SG_checkFile("Datas.Name", "guilds/%{_g}%")
+            replace all "{GUILD}" with "%{_name}%" in {_msg}
+            send "%{SG::Messages::Prefix}% %{_msg}%" to event.getPlayer()
+        SG_checkFile("Regions", "chunks/%event.getBlock().getLocation().getChunk()%") is "%{_pGuild}%":
+            SG_rankCheck("%event.getPlayer().getUniqueId()%", "Break") is false:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to event.getPlayer()
+            SG_rankCheck("%event.getPlayer().getUniqueId()%", "Break") is true:
+                event.setCancelled(false)
+on BlockPlaceEvent:
+    event.getPlayer() doesn't have permission "guilds.admin" or "guilds.bypass"
+    event.setCancelled(true)
+    SG_checkFile("Regions", "chunks/%event.getBlockPlaced().getLocation().getChunk()%") is "*":
+        set {_eWorld::*} to SG_checkFile("General.Interact-Only-Claimed-Areas-Enabled-Worlds", "config") split at ","
+        loop {_eWorld::*}:
+            "%loop-value%" is not "%world of event.getPlayer()%"
+            event.setCancelled(false)
+            stop
+        send "%{SG::Messages::Prefix}% %{SG::Messages::Place_Claimed_Areas_Only}%" to event.getPlayer()
+    SG_checkFile("Regions", "chunks/%event.getBlockPlaced().getLocation().getChunk()%") is not "*":
+        SG_checkFile("General.Claim-Protection.Left-Click", "config") is "true" or "*"
+        set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of event.getPlayer()%")
+        SG_checkFile("Regions", "chunks/%event.getBlockPlaced().getLocation().getChunk()%") is not "%{_pGuild}%":
+            set {_msg} to {SG::Messages::Owned_By}
+            set {_g} to SG_checkFile("Regions", "chunks/%event.getBlockPlaced().getLocation().getChunk()%")
+            set {_name} to SG_checkFile("Datas.Name", "guilds/%{_g}%")
+            replace all "{GUILD}" with "%{_name}%" in {_msg}
+            send "%{SG::Messages::Prefix}% %{_msg}%" to event.getPlayer()
+        SG_checkFile("Regions", "chunks/%event.getBlockPlaced().getLocation().getChunk()%") is "%{_pGuild}%":
+            SG_rankCheck("%event.getPlayer().getUniqueId()%", "Place") is false:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to event.getPlayer()
+            SG_rankCheck("%event.getPlayer().getUniqueId()%", "Place") is true:
+                event.setCancelled(false)
+on damage of armor stand:
+    attacker doesn't have permission "guilds.admin" or "guilds.bypass"
+    attacker is a player
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "attackerdata/%uuid of attacker%")
+    set {_chunk} to SG_checkFile("Regions", "chunks/%chunk at location of victim%")
+    {_chunk} is "*":
+        set {_eWorld} to SG_checkFile("General.Break-Only-Claimed-Areas-Enabled-Worlds", "config")
+        "%{_eWorld}%" contains "%world of attacker%":
+            cancel event
+        send "%{SG::Messages::Prefix}% %{SG::Messages::Break_Claimed_Areas_Only}%" to attacker
+    {_chunk} is not "*":
+        SG_checkFile("General.Claim-Protection.Left-Click", "config") is "false":
+            stop
+        if {_chunk} is not "%{_pGuild}%":
+            cancel event
+            set {_msg} to {SG::Messages::Owned_By}
+            set {_name} to SG_checkFile("Datas.Name", "guilds/%{_chunk}%")
+            replace all "{GUILD}" with "%{_name}%" in {_msg}
+            send "%{SG::Messages::Prefix}% %{_msg}%" to attacker
+        else:
+            SG_rankCheck(uuid of attacker, "Break") is false
+            cancel event
+            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to attacker
+on spawn of armor stand:
+    player doesn't have permission "guilds.admin" or "guilds.bypass"
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+    set {_chunk} to SG_checkFile("Regions", "chunks/%chunk at location of event-entity%")
+    {_chunk} is "*":
+        set {_eWorld} to SG_checkFile("General.Break-Only-Claimed-Areas-Enabled-Worlds", "config")
+        "%{_eWorld}%" contains "%world of player%":
+            cancel event
+        send "%{SG::Messages::Prefix}% %{SG::Messages::Place_Claimed_Areas_Only}%" to player
+    {_chunk} is not "*":
+        SG_checkFile("General.Claim-Protection.Right-Click", "config") is "false":
+            stop
+        if {_chunk} is not "%{_pGuild}%":
+            cancel event
+            set {_msg} to {SG::Messages::Owned_By}
+            set {_name} to SG_checkFile("Datas.Name", "guilds/%{_chunk}%")
+            replace all "{GUILD}" with "%{_name}%" in {_msg}
+            send "%{SG::Messages::Prefix}% %{_msg}%" to player
+        else:
+            SG_rankCheck(uuid of player, "Place") is false
+            cancel event
+            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to player
+# 变量相关
+on placeholder request with prefix "superguilds":
+    identifier is "guild":
+        SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%") is "*":
+            set the result to "無"
+        SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%") is not "*":
+            set {_g1} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+            set {_result} to SG_checkFile("Datas.Name", "guilds/%{_g1}%")
+            set the result to {_result}
+    identifier is "race":
+        SG_checkFile("Players.Race", "playerdata/%uuid of player%") is "*":
+            set the result to "無"
+        SG_checkFile("Players.Race", "playerdata/%uuid of player%") is not "*":
+            set {_race} to SG_checkFile("Players.Race", "playerdata/%uuid of player%")
+            set {_result} to SG_checkFile("Races.%{_race}%.Name", "races")
+            set the result to {_result}
+    identifier is "rank":
+        SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%") is "*":
+            set the result to "無"
+        SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%") is not "*":
+            set {_g2} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of player%")
+            set {_rank} to SG_checkFile("Datas.Players.%uuid of player%.Rank", "guilds/%{_g2}%")
+            set {_result} to SG_checkFile("Guild-Management.Ranks.%{_rank}%-Name", "config")
+            set the result to {_result}

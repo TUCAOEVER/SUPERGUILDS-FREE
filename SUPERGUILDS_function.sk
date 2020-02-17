@@ -1,0 +1,2052 @@
+# 数据相关
+function SG_writeFile(variableName: text, value: text, fileDir: text):
+    file "plugins/SUPERGUILDS/%{_fileDir}%.yml" does not exists:
+        create file "plugins/SUPERGUILDS/%{_fileDir}%.yml"
+    yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml" is not loaded:
+        load yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml" as "plugins/SUPERGUILDS/%{_fileDir}%.yml"
+    set yaml value "%{_variableName}%" from "plugins/SUPERGUILDS/%{_fileDir}%.yml" to "%{_value}%"
+    save yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml"
+function SG_checkFile(variableName: text, fileDir: text) :: text:
+    file "plugins/SUPERGUILDS/%{_fileDir}%.yml" exists:
+        yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml" is not loaded:
+            load yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml" as "plugins/SUPERGUILDS/%{_fileDir}%.yml"
+        set {_v} to yaml value "%{_variableName}%" from "plugins/SUPERGUILDS/%{_fileDir}%.yml" without string checks
+        yaml value "%{_variableName}%" from "plugins/SUPERGUILDS/%{_fileDir}%.yml" is not set:
+            return "*"
+        return "%{_v}%"
+    return "*"
+function SG_valueRemoveAPI(variableName: text, value: number, fileDir: text):
+    yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml" is not loaded:
+        load yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml" as "plugins/SUPERGUILDS/%{_fileDir}%.yml"
+    set {_v} to yaml value "%{_variableName}%" from "plugins/SUPERGUILDS/%{_fileDir}%.yml"
+    {_v} is not set:
+        set {_v} to 0
+    remove {_value} from {_v}
+    {_v} is less than 0:
+        set {_v} to 0
+    SG_writeFile("%{_variableName}%", "%{_v}%", "%{_fileDir}%")
+function SG_valueAddAPI(variableName: text, value: number, fileDir: text):
+    yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml" is not loaded:
+        load yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml" as "plugins/SUPERGUILDS/%{_fileDir}%.yml"
+    set {_v} to yaml value "%{_variableName}%" from "plugins/SUPERGUILDS/%{_fileDir}%.yml"
+    {_v} is not set:
+        set {_v} to 0
+    add {_value} to {_v}
+    SG_writeFile("%{_variableName}%", "%{_v}%", "%{_fileDir}%")  
+function SG_valueDeleteAPI(variableName: text, value: text, fileDir: text):
+    yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml" is not loaded:
+        load yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml" as "plugins/SUPERGUILDS/%{_fileDir}%.yml"
+    delete yaml value "%{_variableName}%.%{_value}%" from "plugins/SUPERGUILDS/%{_fileDir}%.yml"
+    save yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml"
+function SG_valueArraySize(variableName: text, type: text, fileDir: text) :: number:
+    yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml" is not loaded:
+        load yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml" as "plugins/SUPERGUILDS/%{_fileDir}%.yml"
+    set {_input::*} to SG_yamlList("%{_variableName}%", "%{_fileDir}%")
+    set {_r} to "%size of {_input::*}%" parsed as number
+    {_type} is "Online":
+        set {_gName} to {_fileDir}
+        replace all "guilds/" with "" in {_gName}
+        set {_r} to 0
+        loop {_input::*}:
+            set {_lP} to SG_checkFile("Datas.Players.%loop-value%.Username", "guilds/%{_gName}%")
+            "%players%" contains "%{_lP}%"
+            add 1 to {_r}
+    return {_r}
+function SG_yamlList(s: text, fileDir: text) :: strings:
+    yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml" isn't loaded:
+        load yaml "plugins/SUPERGUILDS/%{_fileDir}%.yml" as "plugins/SUPERGUILDS/%{_fileDir}%.yml"
+    set {_list::*} to yaml node list "%{_s}%" from "plugins/SUPERGUILDS/%{_fileDir}%.yml"
+    loop {_list::*}:
+        set {_v} to loop-value
+        replace all "%{_s}%." with "" in {_v}
+        add {_v} to {_c::*}
+    return {_c::*}
+# 判定相关
+function SG_charControlOne(input: text) :: boolean:
+    "%{_input}%" contains "?" or ":" or "/" or "\" or "<" or ">" or "*" or """":
+        return false
+    return true
+function SG_charControlTwo(input: text) :: boolean:
+    set {_allowedChars} to "q-w-e-r-t-y-u-i-o-p-a-s-d-f-g-h-j-k-l-z-x-c-v-b-n-m-1-2-3-4-5-6-7-8-9-0"
+    set {_inputChars::*} to {_input} split at ""
+    loop {_inputChars::*}:
+        "%{_allowedChars}%" doesn't contain "%loop-value%"
+        return false
+    return true
+function SG_timeChecker(time: text, num: number) :: text:
+    set {_year} to year
+    set {_month} to month
+    set {_day} to day
+    set {_hour} to hour
+    set {_minute} to minute
+    set {_second} to seconds
+    {_time} contains ",":
+        set {_t::*} to {_time} split by ","
+        set {_year} to {_t::1} parsed as number
+        set {_month} to {_t::2} parsed as number
+        set {_day} to {_t::3} parsed as number
+        set {_hour} to {_t::4} parsed as number
+        set {_minute} to {_t::5} parsed as number
+        set {_second} to {_t::6} parsed as number
+    set {_a} to date(year, month, day + {_num}, hour, minute, second)
+    set {_b} to date({_year}, {_month}, {_day}, {_hour}, {_minute}, {_second})
+    set {_r} to "true"
+    {_a} < {_b}:
+        set {_r} to "%difference between {_a} and {_b}%"  
+        replace all "years" and "year" with "%{SG::Messages::TimeSpanText_Year}%" in {_r}
+        replace all "months" and "month" with "%{SG::Messages::TimeSpanText_Month}%" in {_r}
+        replace all "days" and "day" with "%{SG::Messages::TimeSpanText_Day}%" in {_r}
+        replace all "hours" and "hour" with "%{SG::Messages::TimeSpanText_Hour}%" in {_r}
+        replace all "minutes" and "minute" with "%{SG::Messages::TimeSpanText_Minute}%" in {_r}
+        replace all "seconds" and "second" with "%{SG::Messages::TimeSpanText_Second}%" in {_r}
+        replace all " and " and ", " with " " in {_r}
+    return {_r}
+function SG_getTime(year: number, month: number, day: number, hour: number, minute: number, second: number, type: text) :: text:
+    set {_aYear} to mod({_year},4)
+    {_aYear} = 0:
+        set {_bYear} to mod({_year},100)
+        {_bYear} != 0
+        {_month} = 2:
+            set {_maxDay} to 29
+        set {_maxDay} to 28
+    set {_cYear} to mod({_year},400)
+    {_cYear} = 0:
+        {_month} = 2:
+            set {_maxDay} to 29
+        set {_maxDay} to 28
+    {_month} = 1 or 3 or 5 or 7 or 8 or 10 or 12:
+        set {_maxDay} to 31
+    set {_maxDay} to 30
+    while {_month} > 12:
+        set {_month} to 1
+        add 1 to {_year}
+    while {_day} >= {_maxDay}:
+        set {_day} to {_day}-{_maxDay}
+        add 1 to {_month}
+    while {_hour} >= 24:
+        set {_hour} to {_hour}-24
+        add 1 to {_day}
+    while {_minute} >= 60:
+        set {_minute} to {_minute}-60
+        add 1 to {_hour}
+    while {_second} >= 60:
+        set {_second} to {_second}-60
+        add 1 to {_minute}
+    {_type} is "hash":
+        return "%{_year}%,%{_month}%,%{_day}%,%{_hour}%,%{_minute}%,%{_second}%"
+    {_type} is "normal":
+        return "%{_day}%/%{_month}%/%year% - %{_hour}%:%{_minute}%"
+
+# 公会相关
+function SG_checkResources(player: player, r.Wood: number, r.Stone: number, r.Iron: number, r.Gold: number, r.Diamond: number, r.Wool: number) :: text:
+    set {_uuid} to uuid of {_player}
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+    if {_pGuild} is not "*":
+        set {_r} to "true"
+        loop "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool":
+            set {_h.%loop-value%} to SG_checkFile("Datas.Resources.%loop-value%.Has", "guilds/%{_pGuild}%") parsed as number
+            set {_required} to {_r.%loop-value%}
+            {_h.%loop-value%} is less than {_required}:
+                set {_r} to "%loop-value%"
+                exit loop
+        return "%{_r}%"
+    else:
+        return "Worker"
+function SG_rankCheck(uuid: text, permission: text) :: boolean:
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+    set {_permissions} to SG_checkFile("Datas.Players.%{_uuid}%.Permissions", "guilds/%{_pGuild}%")
+    set {_rank} to SG_checkFile("Datas.Players.%{_uuid}%.Rank", "guilds/%{_pGuild}%")
+    {_permissions} is "*":
+        set {_permissions} to SG_checkFile("Guild-Management.Ranks.%{_rank}%-Permissions", "config")
+        SG_writeFile("Datas.Players.%{_uuid}%.Permissions", "%{_permissions}%", "guilds/%{_pGuild}%")
+    {_permissions} contains "%{_permission}%":
+        return true
+    {_permissions} doesn't contain "%{_permission}%":
+        return false
+function SG_findRankedPlayer(gName: text, permission: text) :: boolean:
+    set {_list::*} to SG_yamlList("Datas.Players", "guilds/%{_gName}%")
+    loop {_list::*}:
+        SG_checkFile("Players.Username", "playerdata/%loop-value%") parsed as offline player is online
+        SG_rankCheck("%loop-value%", "%{_permission}%") is true
+        return true
+    return false
+function SG_playSound(p: player, sound: text, volume: number, pitch: number):
+    play sound "%{_sound}%" with volume {_volume} and pitch {_pitch} at {_p} for {_p}
+function SG_chunkMiddle(p: player, x: number, y: number, z: number, world: world, type: text): 
+    set {_loc} to location of block at location ({_x}, {_y}, {_z}) in world {_world}    
+    {_loc} is set
+    if {_type} is "unclaim":
+        set {_block} to netherrack
+    else if {_type} is "claim":
+        set {_block} to gold block
+    else if {_type} is "all":
+        set {_block} to iron block
+    else if {_type} is "buildstart":
+        set {_block} to emerald block
+    else if {_type} is "buildfinish":
+        set {_block} to diamond block
+    set {_c} to chunk at {_loc}
+    
+    set {_pos1} to top northwest corner of {_c}
+    set {_pos2} to bottom southeast corner of {_c}
+    set y-coord of {_pos1} to {_y}-1
+    set y-coord of {_pos2} to {_y}-1
+    loop blocks within {_pos1} to {_pos2}:
+        make {_p} see block at loop-block as {_block}
+        add location of loop-block to {_ChunkOutlines::*}
+        
+    {_type} is not "all"    
+    size of {_ChunkOutlines::*} > 0
+    wait 10 seconds
+    {_p} is online
+    loop {_ChunkOutlines::*}:
+        make {_p} see block at loop-value as block at loop-value
+function SG_upgradeBuild(p: player, gName: text, type: text):
+    set {_uuid} to uuid of {_p}
+    SG_checkFile("Guild-Management.Buildings.Claimed-Lands-Need", "config") is "true":
+        set {_cGuild} to SG_checkFile("Regions", "chunks/%chunk at location of {_p}%")
+        {_cGuild} is not "%{_gName}%":
+            send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_This_Chunk}%" to {_p}
+            stop
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+    if {_pGuild} is "%{_gName}%":
+        set {_r} to SG_checkFile("Datas.Players.%{_uuid}%.Rank", "guilds/%{_gName}%")
+        if SG_rankCheck("%{_uuid}%", "Upgrade") is true:
+            set {_maxLevel::Townhall} to 6
+            set {_maxLevel::Barrack} to 5
+            set {_maxLevel::Storage} to 8
+            set {_maxLevel::Alchemy} to 3
+            set {_currentLevel} to SG_checkFile("Datas.Buildings.%{_type}%.Level", "guilds/%{_gName}%") parsed as number
+            if {_currentLevel} is less than {_maxLevel::%{_type}%}:
+                if SG_checkFile("Datas.Buildings.%{_type}%.Status", "guilds/%{_gName}%") is not "0":
+                    set {_getGuildTimer} to SG_checkFile("Datas.Buildings.%{_type}%.Time", "guilds/%{_gName}%")
+                    if SG_timeChecker({_getGuildTimer}, 0) is "true":
+                        add 1 to {_currentLevel}
+                        SG_valueAddAPI("Datas.Buildings.%{_type}%.Level", 1, "guilds/%{_gName}%")
+                        SG_writeFile("Datas.Buildings.%{_type}%.Status", "0", "guilds/%{_gName}%")
+                        set {_m} to {SG::Messages::Building_Upgrade}
+                        replace all "{RANK}" with "%{SG::Messages::Rank_%{_r}%}%" in {_m}
+                        replace all "{PLAYER}" with "%{_p}%" in {_m}
+                        replace all "{BUILD}" with "%{SG::Messages::Buildings_Name_%{_type}%}%" in {_m}
+                        replace all "{NUMBER}" with "%{_currentLevel}%" in {_m}
+                        SG_guildBroadcast({_gName}, {_m})
+                        set {_name} to SG_checkFile("Datas.Name", "guilds/%{_gName}%")
+                        set {_m} to {SG::Messages::Building_Upgrade_Guild}
+                        replace all "{GUILD}" with "%{_name}%" in {_m}
+                        replace all "{BUILD}" with "%{SG::Messages::Buildings_Name_%{_type}%}%" in {_m}
+                        replace all "{NUMBER}" with "%{_currentLevel}%" in {_m}
+                        SG_guildBroadcast({_gName}, {_m})
+                        SG_schematicAPI("%{_type}%", "%{_currentLevel}%", "%{_gName}%")
+                        
+                        if {_type} is "Townhall":
+                            set {_eachMember} to SG_checkFile("Guild-Management.Upgrade-Townhall-Increase-Max-Member", "config") parsed as number
+                            set {_eachClaim} to SG_checkFile("Guild-Management.Upgrade-Townhall-Increase-Max-Claim", "config") parsed as number
+                            SG_valueAddAPI("Datas.Max-Slot", {_eachMember}, "guilds/%{_gName}%")
+                            SG_valueAddAPI("Datas.Max-Claim", {_eachClaim}, "guilds/%{_gName}%")
+                            set {_msg} to {SG::Messages::Buildings_Broadcast_1}
+                            replace all "{NUMSLOT}" with "%{_eachMember}%" in {_msg}
+                            replace all "{NUMCLAIM}" with "%{_eachClaim}%" in {_msg}
+                            SG_guildBroadcast({_gName}, {_msg})
+                            set {_currentLevel} to SG_checkFile("Datas.Buildings.%{_type}%.Level", "guilds/%{_gName}%") parsed as number
+                            {_currentLevel} is 2
+                            SG_guildBroadcast({_gName}, "%{SG::Messages::Buildings_Broadcast_TNT}%")
+                        
+                        else if {_type} is "Barrack":       
+                            SG_checkFile("War.Use-Own-Inventory", "config") is "false" or "*":
+                                set {_msg} to {SG::Messages::Buildings_Broadcast_2}
+                                replace all "{ITEM}" with "%{SG::Messages::Barrack_Upgrade_Item_%{_currentLevel}%}%" in {_msg}
+                                SG_guildBroadcast({_gName}, {_msg})
+                        
+                        else if {_type} is "Storage":
+                            set {_each} to SG_checkFile("Guild-Management.Upgrade-Storage-Increase-Limit", "config") parsed as number
+                            set {_currentLevel} to SG_checkFile("Datas.Buildings.%{_type}%.Level", "guilds/%{_gName}%") parsed as number
+                            {_each} is not set:
+                                set {_each} to 500
+                            SG_checkFile("Guild-Management.Upgrade-Storage-Doubles-Limit", "config") is "true":
+                                set {_each} to {_each}*{_currentLevel}
+                            loop "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool":
+                                SG_valueAddAPI("Datas.Resources.%loop-value%.Max", {_each}, "guilds/%{_gName}%")
+                            SG_guildBroadcast({_gName}, {SG::Messages::Buildings_Broadcast_3})
+                        
+                        else if {_type} is "Alchemy":   
+                            SG_guildBroadcast({_gName}, {SG::Messages::Buildings_Broadcast_4})
+                            loop 2 times:
+                                SG_checkFile("Datas.Buildings.Alchemy.Effect-%loop-number%-Level", "guilds/%{_gName}%") is "*"
+                                SG_writeFile("Datas.Buildings.Alchemy.Effect-%loop-number%-Level", "0", "guilds/%{_gName}%")
+                        set {_location::1::*} to SG_checkFile("Datas.Buildings.%{_type}%.Schematic.Pos-1", "guilds/%{_gName}%") split at ";"
+                        set {_pos1::x} to {_location::1::1} parsed as number
+                        set {_pos1::y} to {_location::1::2} parsed as number
+                        set {_pos1::z} to {_location::1::3} parsed as number
+                        set {_pos1::w} to {_location::1::4} parsed as world
+                        SG_chunkMiddle({_p}, {_pos1::x}, {_pos1::y}, {_pos1::z}, {_pos1::w}, "buildfinish")
+                        holo object "%{_gName}%_%{_type}%" exists
+                        delete holo object "%{_gName}%_%{_type}%"
+                    else:
+                        set {_buildCheck} to SG_timeChecker({_getGuildTimer}, 0)
+                        set {_msg} to {SG::Messages::Build_Wait}
+                        replace all "{TIME}" with "%{_buildCheck}%" in {_msg}
+                        send "%{SG::Messages::Prefix}% %{_msg}%" to {_p}
+                else:
+                    set {_currentLevel} to {_currentLevel}+1
+                    loop "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool":
+                        set {_required.%loop-value%} to SG_checkFile("Guild-Management.Buildings.%{_type}%-Upgrade.%loop-value%", "config") parsed as number
+                        set {_required.%loop-value%} to {_required.%loop-value%}*{_currentLevel}
+                    set {_resourceCheck} to SG_checkResources({_p}, {_required.Wood}, {_required.Stone}, {_required.Iron}, {_required.Gold}, {_required.Diamond}, {_required.Wool})
+                    if {_resourceCheck} is "true":
+                        set {_getGuildTimer} to SG_checkFile("Datas.Worker-Time", "guilds/%{_gName}%")
+                        set {_workerReady} to SG_timeChecker({_getGuildTimer}, 0)
+                        if {_workerReady} is "true":
+                            set {_ploc} to location of {_p}
+                            set {_c} to chunk at {_p}   
+                            set {_x} to x coordinate of {_p}
+                            set {_y} to y coordinate of {_p}
+                            set {_z} to z coordinate of {_p}
+                            set {_world} to world of {_p}
+                            set {_middle} to block 1 under block 7 left block 7 forward block at 0, {_y}, 0 in {_c}
+                            SG_checkFile("General.Schematics", "config") is "true":
+                                if SG_checkFile("Datas.Buildings.%{_type}%.Schematic.Main-Chunk", "guilds/%{_gName}%") is "*":
+                                    set {_cloc} to block 7 left block 7 forward block at 0, {_y}, 0 in chunk of {_p}
+                                    loop "Townhall" and "Barrack" and "Storage" and "Alchemy":
+                                        SG_checkFile("Datas.Buildings.%loop-value%.Schematic.Main-Chunk", "guilds/%{_gName}%") is "%chunk of {_p}%"
+                                        set {_msg} to {SG::Messages::You_Cant_Build_Here}
+                                        replace all "{BUILD}" with uncolored {SG::Messages::Buildings_Name_%loop-value%} in {_msg}
+                                        send "%{SG::Messages::Prefix}% %{_msg}%" to {_p}
+                                        stop
+                                    set {_pos12} to top northwest corner of {_c}
+                                    set {_pos22} to bottom southeast corner of {_c}
+                                    set y-coord of {_pos12} to {_y} - 1
+                                    set y-coord of {_pos22} to {_y} - 1
+                                    loop blocks within {_pos12} to {_pos22}:
+                                        block at loop-block is air or lava or water
+                                        send "%{SG::Messages::Prefix}% %{SG::Messages::Land_Error}%" to {_p}
+                                        send "%{SG::Messages::Prefix}% %{SG::Messages::Land_Protection}%" to {_p}
+                                        send "%{SG::Messages::Prefix}% %{SG::Messages::Land_Protection_2}%" to {_p}
+                                        stop
+                                    set {_disabled::*} to SG_checkFile("General.Claim-Disabled-Worlds", "config") split at ","
+                                    size of {_disabled::*} > 0:
+                                        loop size of {_disabled::*} times:
+                                            "%{_disabled::%loop-number%}%" is "%world of {_p}%"
+                                            send "%{SG::Messages::Prefix}% %{SG::Messages::Option_Disabled}%" to {_p}
+                                            stop        
+                                    set {_centerx} to x coordinate of {_middle}
+                                    set {_centery} to y coordinate of {_middle} 
+                                    set {_centerz} to z coordinate of {_middle} 
+                                    set {_centerw} to world of {_middle}    
+                                    set {_pos1} to top northwest corner of {_c}
+                                    set {_pos2} to bottom southeast corner of {_c}
+                                    set y-coord of {_pos1} to {_centery}
+                                    set y-coord of {_pos2} to {_centery}
+                                    
+                                    SG_checkFile("General.WorldGuard-Support", "config") is "true":
+                                        loop blocks within {_pos1} to {_pos2}:
+                                            region at location of loop-block is set
+                                            set {_regions::*} to region at location of loop-block
+                                            loop {_regions::*}:
+                                                SG_checkFile("WGRegions.%loop-value-2%", "regions") is not "true":
+                                                    {_p} cannot build at location of location of loop-block
+                                                    send "%{SG::Messages::Prefix}% %{SG::Messages::WorldGuard_Error}% no: 3" to {_p}
+                                                    stop 
+                                            {_p} cannot build at location of location of loop-block:
+                                                send "%{SG::Messages::Prefix}% %{SG::Messages::WorldGuard_Error}% no: 1" to {_p}
+                                                stop                                    
+                                    SG_checkFile("Regions", "chunks/%chunk at location of {_p}%") is not "*":
+                                        SG_checkFile("Regions", "chunks/%chunk at location of {_p}%") is not "%{_gName}%"
+                                        send "%{SG::Messages::Prefix}% %{SG::Messages::Chunk_Error}%" to {_p}
+                                        stop
+                                    SG_checkFile("General.Claims", "config") is "true":
+                                        SG_checkFile("General.Auto-Claim-Building-Chunk", "config") is "true" or "*"
+                                        SG_writeFile("Regions", "%{_gName}%", "chunks/%{_c}%")
+                                        SG_valueAddAPI("Datas.Claimed-Land", 1, "guilds/%{_gName}%")                           
+                                        set {_name} to uncolored {SG::Messages::Buildings_Name_%{_type}%}
+                                        SG_writeFile("Datas.Claims.%chunk at {_ploc}%", "%{_x}%;%{_y}%;%{_z}%;%{_world}%;%{_name}%", "guilds/%{_gName}%")
+                                    SG_writeFile("Datas.Buildings.%{_type}%.Schematic.Main-Chunk", "%{_c}%", "guilds/%{_gName}%")
+                                    SG_writeFile("Datas.Buildings.%{_type}%.Schematic.Pos-1", "%{_pos1}'s x coordinate%;%{_pos1}'s y coordinate%;%{_pos1}'s z coordinate%;%world of {_pos1}%", "guilds/%{_gName}%")
+                                    SG_writeFile("Datas.Buildings.%{_type}%.Schematic.Pos-2", "%{_pos2}'s x coordinate%;%{_pos2}'s y coordinate%;%{_pos2}'s z coordinate%;%world of {_pos2}%", "guilds/%{_gName}%")
+                                    SG_writeFile("Datas.Buildings.%{_type}%.Schematic.Center", "%{_centerx}%;%{_centery}%;%{_centerz}%;%{_centerw}%", "guilds/%{_gName}%")     
+                                else:
+                                    set {_location::1::*} to SG_checkFile("Datas.Buildings.%{_type}%.Schematic.Center", "guilds/%{_gName}%") split at ";"
+                                    set {_x} to {_location::1::1} parsed as number
+                                    set {_y} to {_location::1::2} parsed as number
+                                    set {_z} to {_location::1::3} parsed as number
+                                    set {_w} to {_location::1::4} parsed as world
+                                    set {_testloc} to location of block at location ({_x}, {_y}, {_z}) in world {_w}
+                                    set {_cloc} to block 7 left block 7 forward block at 0, {_y}, 0 in chunk of {_testloc}
+                                    
+                            set {_timeGetWorker} to SG_checkFile("General.Worker-Time", "config") parsed as number
+                            {_timeGetWorker} is not set:
+                                set {_timeGetWorker} to 30
+                            set {_t} to SG_getTime(year, month, day, hour, minute+{_timeGetWorker}, second, "hash")    
+                            SG_writeFile("Datas.Worker-Time", "%{_t}%", "guilds/%{_gName}%")
+                            set {_timeGet} to SG_checkFile("General.Building-Upgrade-Minutes.%{_type}%", "config") parsed as number
+                            {_timeGet} is not set:
+                                set {_timeGet} to 30
+                            loop "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool":
+                                SG_valueRemoveAPI("Datas.Resources.%loop-value%.Has", {_required.%loop-value%}, "guilds/%{_gName}%")
+                            SG_writeFile("Datas.Buildings.%{_type}%.Status", "1", "guilds/%{_gName}%")
+                            set {_t} to SG_getTime(year, month, day, hour, minute+{_timeGet}, second, "hash")
+                            SG_writeFile("Datas.Buildings.%{_type}%.Time", "%{_t}%", "guilds/%{_gName}%")
+                            set {_msg} to {SG::Messages::Build_Started} 
+                            replace all "{RANK}" with "%{SG::Messages::Rank_%{_r}%}%" in {_msg}
+                            replace all "{PLAYER}" with "%{_p}%" in {_msg}
+                            replace all "{BUILD}" with "%{SG::Messages::Buildings_Name_%{_type}%}%" in {_msg}
+                            replace all "{LEVEL}" with "%{SG::Messages::Romen_Num_%{_currentLevel}%}%" in {_msg}
+                            set {_buildCheck} to SG_timeChecker({_t}, 0)
+                            replace all "{TIME}" with "%{_buildCheck}%" in {_msg}
+                            {_buildCheck} is not "true"
+                            set {_holotime} to SG_getTime(year, month, day, hour, minute + {_timeGet}, second, "normal")
+                            SG_guildBroadcast({_gName}, "%{_msg}%")
+                            
+                            #SG_checkFile("General.Holos", "config") is "true":
+                                #set {_msg2} to {SG::Messages::Holo_Message_Build}
+                                #set y coord of {_middle} to {_y}+2
+                                #set {_upPG} to "%{_gName}%" to all upper case
+                                #set {_upBL} to uncolored {SG::Messages::Buildings_Name_%{_type}%} to all upper case
+                                #replace all "{BUILD}" with "%{_upBL}%" in {_msg2}
+                                #replace all "{GUILD}" with "%{_upPG}%" in {_msg2}
+                                #replace all "{DATE}" with "%{_holotime}%" in {_msg2}
+                                #replace all "ItemStack:BRICK;" with "" in {_msg2}
+                                #set {_etype} to "ItemStack:BRICK;"
+                                #create holo object "%{_etype}%%{_msg2}%" with id "%{_gName}%_%{_type}%" at {_middle}
+                            
+                            SG_chunkMiddle({_p}, {_x}, {_y}, {_z}, {_world}, "buildstart")
+                            set {_executable} to SG_checkFile("General.Executable-Commands.On-Create-Building", "config")
+                            {_executable} is not "*"
+                            replace all "{PLAYER}" with "%{_p}%" in {_executable}
+                            replace all "{GUILD}" with "%{_gName}%" in {_executable}
+                            replace all "{X}" with "%{_x}%" in {_executable}
+                            replace all "{Y}" with "%{_y}%" in {_executable}
+                            replace all "{Z}" with "%{_z}%" in {_executable}
+                            replace all "{WORLD}" with "%{_world}%" in {_executable}
+                            execute console command "%{_executable}%"
+                        else:
+                            set {_msg} to {SG::Messages::Worker_Rest}
+                            replace all "{TIME}" with "%{_workerReady}%" in {_msg}
+                            send "%{SG::Messages::Prefix}% %{_msg}%" to {_p}
+                    else:
+                        set {_co} to SG_checkFile("Datas.Resources.%{_resourceCheck}%.Has", "guilds/%{_gName}%") parsed as number
+                        set {_msg} to {SG::Messages::You_Need_More_Resource}
+                        replace all "{RESOURCE}" with "%{SG::Messages::Resource_%{_resourceCheck}%}%" in {_msg}
+                        replace all "{AMOUNT}" with "%{_required.%{_resourceCheck}%} - {_co}%" in {_msg}
+                        send "%{SG::Messages::Prefix}% %{_msg}%" to {_p}
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::Limit_Buildings}%" to {_p}
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to {_p}
+    else:
+        send "%{SG::Messages::Prefix}% %{SG::Messages::Guild_Error_Upgrade}%" to {_p}
+function SG_disbandGuild(g: text):
+    set {_list::*} to SG_yamlList("Datas.Players", "guilds/%{_g}%")
+    loop {_list::*}:
+        SG_writeFile("Players.Guild-Name", "*", "playerdata/%loop-value%")
+    set {_claims::*} to files in "plugins/SUPERGUILDS/chunks"
+    loop {_claims::*}:
+        set {_lv} to "%loop-value%"
+        replace all ".yml" with "" in {_lv}
+        set {_chunk} to SG_checkFile("Regions", "chunks/%{_lv}%")
+        {_chunk} is "%{_g}%"
+        delete file "plugins/SUPERGUILDS/chunks/%loop-value%"
+    set {_name} to SG_checkFile("Datas.Name", "guilds/%{_g}%")
+    {_name} is not "*":
+        set {_message} to {SG::Messages::Guild_Remove_Broadcast}
+        replace all "{GUILD}" with "%{_name}%" in {_message}
+        broadcast "%{SG::Messages::Prefix}% %{_message}%"
+    loop "Townhall" and "Barrack" and "Alchemy" and "Storage":
+        holo object "%{_g}%_%loop-value%" exists:
+            delete holo object "%{_g}%_%loop-value%"
+    delete file "plugins/SUPERGUILDS/guilds/%{_g}%.yml"
+function SG_guildManagement(p: player):
+    set {_uuid} to uuid of {_p}
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+    if {_pGuild} is not "*":
+        set {_race} to SG_checkFile("Players.Race", "playerdata/%{_uuid}%")
+        set {_shield} to SG_checkFile("Datas.War-Shield", "guilds/%{_pGuild}%")
+        set {_sCheck} to SG_timeChecker({_shield}, 0)
+        set {_sItem} to {SG::Item::Shield_Disabled_ItemNBT} 
+        set {_sName} to {SG::Messages::War_Shield_Disable_Name} 
+        set {_sLore} to {SG::Messages::War_Shield_Disable_Lore}
+        {_sCheck} is not "true":
+            set {_sItem} to {SG::Item::Shield_Enabled_ItemNBT}  
+            set {_sName} to {SG::Messages::War_Shield_Enable_Name}  
+            set {_sLore} to {SG::Messages::War_Shield_Enable_Lore}
+            replace all "{TIME}" with "%{_sCheck}%" in {_sLore}
+
+        set {_s2} to SG_valueArraySize("Datas.Players", "0", "guilds/%{_pGuild}%")
+        set {_rank} to SG_checkFile("Datas.Players.%{_uuid}%.Rank", "guilds/%{_pGuild}%")
+        set {_date} to SG_checkFile("Datas.Players.%{_uuid}%.Join-Date", "guilds/%{_pGuild}%")
+        set {_warkills} to SG_checkFile("Datas.Players.%{_uuid}%.War-Kills", "guilds/%{_pGuild}%")
+        set {_wardeaths} to SG_checkFile("Datas.Players.%{_uuid}%.War-Deaths", "guilds/%{_pGuild}%")
+        set {_seen} to SG_checkFile("Players.Last-Seen.Normal", "playerdata/%{_uuid}%")
+        set {_lore1} to {SG::Messages::Guild_Management_PlayerInfo_New}
+        replace all "{DONATEINFO}" with "%{SG::Messages::Donated_List_New}%" in {_lore1}
+        replace all "{NAME}" with "%{_p}%" in {_lore1}
+        replace all "{STATUS}" with "%{SG::Messages::Status_Online}%" in {_lore1}
+        replace all "{SEEN}" with "%{_seen}%" in {_lore1}
+        replace all "{RANK}" with "%{SG::Messages::Rank_%{_rank}%}%" in {_lore1}
+        replace all "{DATE}" with "%{_date}%" in {_lore1}
+        replace all "{WARKILLS}" with "%{_warkills}%" in {_lore1}
+        replace all "{WARDEATHS}" with "%{_wardeaths}%" in {_lore1}
+        loop "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool":
+            set {_lv} to "%loop-value%" to all upper case
+            set {_donated} to SG_checkFile("Datas.Players.%{_uuid}%.Donated-Resource.%loop-value%", "guilds/%{_pGuild}%")
+            replace all "{D%{_lv}%}" with "%{_donated}%" in {_lore1}
+        set {_division} to SG_checkFile("Datas.Division", "guilds/%{_pGuild}%")#
+        set {_barracksLevel} to SG_checkFile("Datas.Buildings.Barrack.Level", "guilds/%{_pGuild}%") parsed as number  
+        set {_points} to SG_checkFile("Datas.War-Points", "guilds/%{_pGuild}%")#
+        set {_kills} to SG_checkFile("Datas.War-Kills", "guilds/%{_pGuild}%")
+        set {_deaths} to SG_checkFile("Datas.War-Deaths", "guilds/%{_pGuild}%")
+        set {_join} to SG_checkFile("Datas.Join-Status", "guilds/%{_pGuild}%")
+        set {_notifier} to SG_checkFile("Players.Notifier", "playerdata/%{_uuid}%")
+        set {_lore} to {SG::Messages::Menu_War_Lore_New}
+        replace all "{KILLS}" with "%{_kills}%" in {_lore}
+        replace all "{DEATHS}" with "%{_deaths}%" in {_lore}
+        replace all "{LEVEL}" with "%{SG::Messages::Divisions_%{_division}%}%" in {_lore}
+        replace all "{POINTS}" with "%{_points}%" in {_lore}
+        replace all "{ITEMS}" with "%{SG::Messages::Barrack_Upgrade_Item_%{_barracksLevel}%}%" in {_lore}
+        replace all "{TOP}" with "%{_TopKiller}%" in {_lore}
+        #
+        open virtual chest inventory with size 6 named "%{SG::Messages::GUIPrefix}%%{SG::Messages::Guild_Management}%" to {_p}
+        
+        format gui slot 3 of {_p} with {_sItem} named "%{_sName}%" with lore "%{_sLore}%"
+        format gui slot 4 of {_p} with {SG::Item::Home_ItemNBT} named "%{SG::Messages::Guild_Home_Menu_Name}%" with lore "%{SG::Messages::Guild_Home_Menu_Lore}%" to close then run {_p} command "/g home"
+        format gui slot 5 of {_p} with {SG::Item::Friends_ItemNBT} named "%{SG::Messages::Friends_MenuItemName}%" with lore "%{SG::Messages::Friends_MenuItemLore}%" to close then run function SG_pageAPI({_p}, "6", 0)
+    
+        format gui slot 20 of {_p} with {SG::Item::Claimed_ItemNBT} named "%{SG::Messages::Claimed_Lands}%" with lore "%{SG::Messages::Claimed_Lands_Lore}%" to close then run function SG_pageAPI({_p}, "1", 0)
+        format gui slot 21 of {_p} with {SG::Item::Allies_ItemNBT} named "%{SG::Messages::Menu_Allies_Name}%" with lore "%{SG::Messages::Menu_Allies_Lore}%" to run function SG_pageAPI({_p}, "4", 0)
+        format gui slot 22 of {_p} with {SG::Item::Alchemy_ItemNBT} named "%{SG::Messages::Guild_Alchemy}%" with lore "%{SG::Messages::Guild_Alchemy_Lore}%" to close then run function SG_alchemyGUI({_p})
+        format gui slot 23 of {_p} with {SG::Item::Buildings_ItemNBT} named "%{SG::Messages::Guild_Buildings}%" with lore "%{SG::Messages::Guild_Buildings_Lore}%" to close then run function SG_buildingsGUI({_p})        
+        format gui slot 24 of {_p} with {SG::Item::Reserve_Players_ItemNBT} named "%{SG::Messages::Reserve_Players}%" with lore "%{SG::Messages::Reserve_Players_Lore}%" to close then run function SG_pageAPI({_p}, "7", 0)
+
+        format gui slot 29 of {_p} with {SG::Item::Guild_Vault_ItemNBT} named "%{SG::Messages::Guild_Vault_ItemName}%" with lore "%{SG::Messages::Guild_Vault_ItemLore}%" to run function SG_guildVault({_p})  
+        format gui slot 30 of {_p} with {SG::Item::Emblem_ItemNBT} named "%{SG::Messages::Guild_Emblem_GUI}%"  with lore "%{SG::Messages::Guild_Emblem_Lore}%" to run {_p} command "/g emblem"
+        format gui slot 31 of {_p} with {_s2} of {SG::Item::Players_ItemNBT} named "%{SG::Messages::Check_Players}%" with lore "%{SG::Messages::Check_Players_Lore}%" to close then run function SG_pageAPI({_p}, "3", 0)
+        format gui slot 32 of {_p} with {SG::Item::Storage_ItemNBT} named "%{SG::Messages::Guild_Store}%" with lore "%{SG::Messages::Guild_Store_Lore}%" to close then run function SG_storeGUI({_p})  
+        format gui slot 33 of {_p} with {SG::Item::Join_Status_ItemNBT_%{_join}%} named "%{SG::Messages::Join_Status_Name_%{_join}%}%" with lore "%{SG::Messages::Join_Status_Lore_%{_join}%}%%{SG::Messages::ChangeJoinStatus_Lore}%" to run function SG_changeJoin({_p}) 
+        add "-3-" and "-4-" and "-5-" and "-20-" and "-21-" and "-22-" and "-23-" and "-24-" and "-29-" and "-30-" and "-31-" and "-32-" and "-33-" to {_noglass::*}
+        #
+        format gui slot 47 of {_p} with {SG::Item::Notifier_Status_ItemNBT_%{_notifier}%} named "%{SG::Messages::Notifier_Status_Name_%{_notifier}%}%" with lore "%{SG::Messages::Notifier_Status_Lore_%{_notifier}%}%%{SG::Messages::ChangeNotifierStatus_Lore}%" to run function SG_changeNotifier({_p}) 
+        format gui slot 48 of {_p} with {SG::Item::Divisions_NBT_%{_division}%} named "%{SG::Messages::Menu_War_Name_2}%" with lore "||&7%{_lore}%"
+        format gui slot 49 of {_p} with {SG::Item::Player_Race_ItemNBT} named "%{SG::Messages::Manage_Panel_2}%" with lore "%{_lore1}%" to close then run function SG_raceSelectGUI({_p})
+        format gui slot 50 of {_p} with {SG::Item::Top_10_ItemNBT} named "%{SG::Messages::Menu_War_Name_3}%" with lore "||&7%{SG::Messages::War_Top_GUI}%" to close then run function SG_topGUI({_p})
+        format gui slot 51 of {_p} with {SG::Item::Find_War_ItemNBT} named "%{SG::Messages::Menu_War_Name_1}%" with lore "||&7%{SG::Messages::Menu_War_Lore_1}%" to run function SG_pageAPI({_p}, "2", 0)
+        add "-47-" and "-48-" and "-49-" and "-50-" and "-51-" to {_noglass::*}
+        set {_no} to 1
+        set {_cont} to 0
+        set {_x} to 10
+        loop 28 times:
+            add "-%{_x}%-" to {_noglass::*}
+            add 1 to {_x}
+            add 1 to {_no}
+            add 1 to {_cont}
+            {_cont} is greater or equal to 7:
+                add 2 to {_x}
+                set {_cont} to 0
+        set {_x} to 0
+        loop 54 times:
+            {_noglass::*} doesn't contain "-%{_x}%-":
+                format gui slot {_x} of {_p} with {SG::Item::Menu_Item}
+            add 1 to {_x}
+    else:
+        send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to {_p}
+function SG_pageAPI(p: player, type: text, page: number):
+    set {_uuid} to uuid of {_p}
+    set {_pageStart} to 28 * {_page}
+    set {_i} to 1
+    clear {_Variables::*}
+    {_type} is "0":
+        set {_guilds::*} to files in "plugins/SUPERGUILDS/guilds"
+        loop {_guilds::*}:
+            set {_ID} to "%loop-value%"
+            replace all ".yml" with "" in {_ID}
+            set {_name} to SG_checkFile("Datas.Name", "guilds/%{_ID}%") 
+            {_name} is not "*" or "null"
+            add {_ID} to {_Variables::*}
+    {_type} is "1":
+        set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+        if {_pGuild} is not "*":
+            if SG_checkFile("Guild-Management.Teleport-To-Claims", "config") is "true" or "*":
+                set {_Variables::*} to SG_yamlList("Datas.Claims", "guilds/%{_pGuild}%")
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::Option_Disabled}%" to {_p}
+                stop
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to {_p}
+            stop
+    {_type} is "2":
+        set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+        if {_pGuild} is not "*":
+            set {_guilds::*} to files in "plugins/SUPERGUILDS/guilds"
+            loop {_guilds::*}:
+                set {_ID} to "%loop-value%"
+                replace all ".yml" with "" in {_ID}
+                set {_name} to SG_checkFile("Datas.Name", "guilds/%{_ID}%") 
+                {_name} is not "*" or "null"
+                add {_ID} to {_Variables::*}
+            remove {_pGuild} from {_Variables::*}
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to {_p}
+            stop        
+    {_type} is "21":
+        set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+        if {_pGuild} is not "*":
+            set {_guilds::*} to files in "plugins/SUPERGUILDS/guilds"
+            loop {_guilds::*}:
+                set {_ID} to "%loop-value%"
+                replace all ".yml" with "" in {_ID}
+                set {_name} to SG_checkFile("Datas.Name", "guilds/%{_ID}%") 
+                {_name} is not "*" or "null"
+                SG_timeChecker(SG_checkFile("Datas.War-Shield", "guilds/%{_ID}%"), 0) is "true"
+                add {_ID} to {_Variables::*}
+            remove {_pGuild} from {_Variables::*}
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to {_p}
+            stop        
+    {_type} is "22":
+        set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+        if {_pGuild} is not "*":
+            set {_guilds::*} to files in "plugins/SUPERGUILDS/guilds"
+            loop {_guilds::*}:
+                set {_guild} to "%loop-value%"
+                replace all ".yml" with "" in {_guild}
+                SG_findRankedPlayer({_guild}, "War") is true
+                add {_guild} to {_Variables::*}
+            remove {_pGuild} from {_Variables::*}
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to {_p}
+            stop        
+    {_type} is "3":
+        set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+        if {_pGuild} is not "*":
+            set {_Variables::*} to SG_yamlList("Datas.Players", "guilds/%{_pGuild}%")
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to {_p}
+            stop
+    {_type} is "4":
+        set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+        if {_pGuild} is not "*":
+            set {_Variables::*} to SG_yamlList("Datas.Allies", "guilds/%{_pGuild}%")
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to {_p}
+            stop
+    {_type} is "5":
+        set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+        set {_guilds::*} to files in "plugins/SUPERGUILDS/guilds"
+        loop {_guilds::*}:
+            set {_guild} to "%loop-value%"
+            replace all ".yml" with "" in {_guild}
+            add {_guild} to {_Variables::*}
+    {_type} is "51":
+        set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+        set {_guilds::*} to files in "plugins/SUPERGUILDS/guilds"
+        loop {_guilds::*}:
+            set {_guild} to "%loop-value%"
+            replace all ".yml" with "" in {_guild}
+            SG_checkFile("Datas.Join-Status", "guilds/%{_guild}%") is "1"
+            add {_guild} to {_Variables::*}
+    {_type} is "52":
+        set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+        set {_guilds::*} to files in "plugins/SUPERGUILDS/guilds"
+        loop {_guilds::*}:
+            set {_guild} to "%loop-value%"
+            replace all ".yml" with "" in {_guild}
+            SG_checkFile("Datas.Join-Status", "guilds/%{_guild}%") is "2"
+            add {_guild} to {_Variables::*}
+    {_type} is "6":
+        set {_Variables::*} to SG_yamlList("Players.Friends", "playerdata/%{_uuid}%")
+        set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+    {_type} is "7":
+        set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+        if {_pGuild} is not "*":
+            set {_Variables::*} to SG_yamlList("Datas.Reserve-Players", "guilds/%{_pGuild}%")
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to {_p}
+    set {_header} to "%{SG::Messages::GUIPrefix}%%{SG::Messages::PageAPI_Header_%{_type}%}% &8[%size of {_Variables::*}%]"    
+    open virtual chest inventory with size 6 named "%{_header}%" to {_p}
+    
+    set {_z} to 0
+    loop 54 times:
+        format gui slot {_z} of {_p} with {SG::Item::Menu_Item}
+        add 1 to {_z}
+    set {_c} to 0
+    set {_w} to 10
+    loop 28 times:
+        unformat gui slot {_w} of {_p}
+        add 1 to {_w}
+        add 1 to {_c}
+        {_c} >= 7:
+            add 2 to {_w}
+            set {_c} to 0
+
+    if size of {_Variables::*} > 0:
+        set {_x} to 10
+        loop {_Variables::*}:
+            (loop-index parsed as integer) > {_pageStart}
+            delete {_V::*}
+            delete {_target}
+            set {_target} to "%loop-value%"
+            # 公会
+            {_type} is "0":
+                set {_gName} to SG_checkFile("Datas.Name", "guilds/%loop-value%")
+                set {_leader} to SG_checkFile("Datas.Leader", "guilds/%loop-value%")
+                set {_division} to SG_checkFile("Datas.Division", "guilds/%loop-value%")
+                set {_points} to SG_checkFile("Datas.War-Points", "guilds/%loop-value%")
+                set {_design} to SG_checkFile("Datas.Emblem", "guilds/%loop-value%")
+                {_design} is "*":
+                    set {_design} to "f"
+                    loop 64 times:
+                        set {_design} to "%{_design}%;f"
+                set {_unicodes::*} to {_design} split at ";"
+                set {_no} to 0
+                loop 8 times:   
+                    set {_anamsg} to ""
+                    loop 8 times:
+                        add 1 to {_no}
+                        clear {_msg}
+                        set {_msg} to coloured "&%{_unicodes::%{_no}%}%█"           
+                        set {_anamsg} to "%{_anamsg}%%{_msg}%"
+                    set {_dlore%loop-number%} to "%{_anamsg}%"
+                set {_design} to "%{_dlore1}%||%{_dlore2}%||%{_dlore3}%||%{_dlore4}%||%{_dlore5}%||%{_dlore6}%||%{_dlore7}%||%{_dlore8}%"
+                set {_msg} to {SG::Messages::Click_To_Info_New} 
+                replace all "{LEADER}" with "%{_leader}%" in {_msg}
+                replace all "{LEVEL}" with "%{SG::Messages::Divisions_%{_division}%}%" in {_msg}
+                replace all "{POINTS}" with "%{_points}%" in {_msg}
+                replace all "{EMBLEM}" with "%{_design}%" in {_msg}
+                set {_V::Name} to "&6%{_gName}%"
+                set {_V::Lore} to "%{_msg}%"
+                format gui slot {_x} of {_p} with {SG::Item::Divisions_NBT_%{_division}%} named "%{_V::Name}%" with lore "%{_V::Lore}%" to close then run function SG_guildInfo({_p}, {_target})
+            # 领地
+            {_type} is "1":
+                set {_data::*} to SG_checkFile("Datas.Claims.%loop-value%", "guilds/%{_pGuild}%") split at ";"
+                if {_data::5} is not set:
+                    set {_V::Name} to "&6%{SG::Messages::Claimed_Land}%"
+                else:
+                    set {_V::Name} to "&6%{_data::5}%"
+                set {_V::Item} to grass
+                set {_msg} to {SG::Messages::Claimed_Land_Lore}         
+                replace all "{LOC}" with "%{_data::1}% / %{_data::2}% / %{_data::3}%" in {_msg}
+                set {_V::Lore} to "%{_msg}%||||%{SG::Messages::Claim_Name}%"
+                set {_xLoc} to {_data::1} parsed as number
+                set {_yLoc} to {_data::2} parsed as number
+                set {_zLoc} to {_data::3} parsed as number
+                set {_wLoc} to {_data::4} parsed as world
+                format gui slot {_x} of {_p} with {_V::Item} named "%{_V::Name}%" with lore "%{_V::Lore}%" to close then run function SG_teleporterAPI({_p}, {_xLoc}, {_yLoc}, {_zLoc}, {_wLoc})
+            # 对战
+            {_type} is "2" or "21" or "22":
+                set {_gName} to SG_checkFile("Datas.Name", "guilds/%loop-value%")
+                set {_leader} to SG_checkFile("Datas.Leader", "guilds/%loop-value%")
+                set {_division} to SG_checkFile("Datas.Division", "guilds/%loop-value%")
+                set {_points} to SG_checkFile("Datas.War-Points", "guilds/%loop-value%")#
+                set {_sCheck} to SG_timeChecker(SG_checkFile("Datas.War-Shield", "guilds/%loop-value%"), 0)
+                set {_lore2} to "%{SG::Messages::War_Shield_GUI_Lore_1}%"
+                {_sCheck} is "true":
+                    set {_lore2} to "%{SG::Messages::War_Shield_GUI_Lore_2}%"    
+                set {_design} to SG_checkFile("Datas.Emblem", "guilds/%loop-value%")#
+                {_design} is "*":
+                    set {_design} to "f"
+                    loop 64 times:
+                        set {_design} to "%{_design}%;f"
+                set {_unicodes::*} to {_design} split at ";"
+                set {_no} to 0
+                loop 8 times:   
+                    set {_anamsg} to ""
+                    loop 8 times:
+                        add 1 to {_no}
+                        clear {_msg}
+                        set {_msg} to coloured "&%{_unicodes::%{_no}%}%█"           
+                        set {_anamsg} to "%{_anamsg}%%{_msg}%"
+                    set {_dlore%loop-number%} to "%{_anamsg}%"
+                set {_design} to "%{_dlore1}%||%{_dlore2}%||%{_dlore3}%||%{_dlore4}%||%{_dlore5}%||%{_dlore6}%||%{_dlore7}%||%{_dlore8}%"
+                set {_msg} to {SG::Messages::Click_To_War_New}  
+                replace all "{LEADER}" with "%{_leader}%" in {_msg}
+                replace all "{LEVEL}" with "%{SG::Messages::Divisions_%{_division}%}%" in {_msg}
+                replace all "{POINTS}" with "%{_points}%" in {_msg}
+                replace all "{EMBLEM}" with "%{_design}%" in {_msg}
+                set {_V::Name} to "&6%{_gName}%"
+                set {_V::Lore} to "%{_msg}%"    
+                format gui slot {_x} of {_p} with {SG::Item::Divisions_NBT_%{_division}%} named "%{_V::Name}%" with lore "%{_lore2}%||%{_V::Lore}%" to close then execute {_p} command "/g war %{_target}%"
+            # 管理
+            {_type} is "3":
+                set {_uName} to SG_checkFile("Datas.Players.%loop-value%.Username", "guilds/%{_pGuild}%")
+                set {_race} to SG_checkFile("Players.Race", "playerdata/%loop-value%")
+                set {_rank} to SG_checkFile("Datas.Players.%loop-value%.Rank", "guilds/%{_pGuild}%")
+                set {_date} to SG_checkFile("Datas.Players.%loop-value%.Join-Date", "guilds/%{_pGuild}%")
+                set {_warkills} to SG_checkFile("Datas.Players.%loop-value%.War-Kills", "guilds/%{_pGuild}%")
+                set {_wardeaths} to SG_checkFile("Datas.Players.%loop-value%.War-Deaths", "guilds/%{_pGuild}%")
+                set {_seen} to SG_checkFile("Players.Last-Seen.Normal", "playerdata/%loop-value%")
+                set {_uuid} to "%loop-value%"
+                set {_status} to {SG::Messages::Status_Offline}
+                set {_crank} to ""
+                set {_ckick} to ""
+                {_race} is "*":
+                    set {_race} to "0"
+                {_uName} parsed as offline player is online:
+                    set {_status} to {SG::Messages::Status_Online}
+                {_p} is not {_uName}:
+                    SG_rankCheck(uuid of {_p}, "Rank") is true:
+                        set {_crank} to "%{SG::Messages::Member_Information_Rank}%"
+                    SG_rankCheck(uuid of {_p}, "Kick") is true:
+                        set {_ckick} to "%{SG::Messages::Member_Information_Kick}%"
+                set {_V::Lore} to {SG::Messages::MemberInformation_Lore}
+                set {_V::Name} to "&6%{_uName}% &7> {STATUS}"
+                replace all "{DONATEINFO}" with "%{SG::Messages::Donated_List_New}%" in {_V::Lore}
+                replace all "{NAME}" with "%{_uName}%" in {_V::Lore}
+                replace all "{SEEN}" with "%{_seen}%" in {_V::Lore}
+                replace all "{RANK}" with "%{SG::Messages::Rank_%{_rank}%}%" in {_V::Lore}
+                replace all "{RACE}" with SG_checkFile("Races.%{_race}%.Name", "races") in {_V::Lore}
+                replace all "{DATE}" with "%{_date}%" in {_V::Lore}
+                replace all "{WARKILLS}" with "%{_warkills}%" in {_V::Lore}
+                replace all "{WARDEATHS}" with "%{_wardeaths}%" in {_V::Lore}
+                replace all "{CRANK}" with "%{_crank}%" in {_V::Lore}
+                replace all "{CKICK}" with "%{_ckick}%" in {_V::Lore}
+                replace all "{STATUS}" with "%{_status}%" in {_V::Name}
+                loop "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool":
+                    set {_lv} to "%loop-value-2%" to all upper case
+                    set {_donated} to SG_checkFile("Datas.Players.%loop-value-1%.Donated-Resource.%loop-value-2%", "guilds/%{_pGuild}%")
+                    replace all "{D%{_lv}%}" with "%{_donated}%" in {_V::Lore}
+                format gui slot {_x} of {_p} with {SG::Item::Rank_%{_rank}%_ItemNBT} named "%{_V::Name}%" with lore "%{_V::Lore}%" to run:
+                    click type is left mouse button with shift:
+                        SG_guildKick({_p}, "%{_uuid}%")
+                    click type is left mouse button:
+                        SG_rankGUI({_p}, "%{_uuid}%")
+                    click type is right mouse button:
+                        SG_playerInfo({_p}, "%{_uuid}%", 3)
+            # 同盟
+            {_type} is "4":
+                set {_time} to SG_checkFile("Datas.Allies.%loop-value%.Time", "guilds/%{_pGuild}%")
+                set {_by} to SG_checkFile("Datas.Allies.%loop-value%.Added-By", "guilds/%{_pGuild}%")
+                set {_V::Lore} to {SG::Messages::Allies_4_Lore}
+                replace all "{DATE}" with "%{_time}%" in {_V::Lore}
+                replace all "{BY}" with "%{_by}%" in {_V::Lore}
+                replace all "{GUILD}" with "%loop-value%" in {_V::Lore}
+                set {_V::Name} to "&6%loop-value%"
+                set {_V::Item} to paper
+                format gui slot {_x} of {_p} with {_V::Item} named "%{_V::Name}%" with lore "%{_V::Lore}%" to execute {_p} command "/g enemy %{_target}%"
+            # 查找
+            {_type} is "5" or "51" or "52":
+                set {_gName} to SG_checkFile("Datas.Name", "guilds/%loop-value%")
+                set {_leader} to SG_checkFile("Datas.Leader", "guilds/%loop-value%") parsed as offline player
+                set {_division} to SG_checkFile("Datas.Division", "guilds/%loop-value%")
+                set {_points} to SG_checkFile("Datas.War-Points", "guilds/%loop-value%")#
+                set {_design} to SG_checkFile("Datas.Emblem", "guilds/%loop-value%")#
+                {_design} is "*":
+                    set {_design} to "f"
+                    loop 64 times:
+                        set {_design} to "%{_design}%;f"
+                set {_unicodes::*} to {_design} split at ";"
+                set {_no} to 0
+                loop 8 times:   
+                    set {_anamsg} to ""
+                    loop 8 times:
+                        add 1 to {_no}
+                        clear {_msg}
+                        set {_msg} to coloured "&%{_unicodes::%{_no}%}%█"           
+                        set {_anamsg} to "%{_anamsg}%%{_msg}%"
+                    set {_dlore%loop-number%} to "%{_anamsg}%"
+                set {_design} to "%{_dlore1}%||%{_dlore2}%||%{_dlore3}%||%{_dlore4}%||%{_dlore5}%||%{_dlore6}%||%{_dlore7}%||%{_dlore8}%"
+                set {_msg} to {SG::Messages::Click_To_Join_New} 
+                replace all "{LEADER}" with "%{_leader}%" in {_msg}
+                replace all "{LEVEL}" with "%{SG::Messages::Divisions_%{_division}%}%" in {_msg}
+                replace all "{POINTS}" with "%{_points}%" in {_msg}
+                replace all "{EMBLEM}" with "%{_design}%" in {_msg}
+                set {_V::Name} to "&6%{_gName}%"
+                set {_V::Lore} to "%{_msg}%"
+                format gui slot {_x} of {_p} with {SG::Item::Divisions_NBT_%{_division}%} named "%{_V::Name}%" with lore "%{_V::Lore}%" to close then execute {_p} command "/g join %{_target}%"
+            # 好友
+            {_type} is "6":
+                set {_V::Lore} to {SG::Messages::Click_To_Friend}
+                set {_plore} to ""
+                {_pGuild} is not "*":
+                    set {_plore} to {SG::Messages::Click_To_InviteGuild}
+                set {_uuid} to "%loop-value%"
+                set {_user} to SG_checkFile("Players.Username", "playerdata/%loop-value%")
+                set {_last} to SG_checkFile("Players.Last-Seen.Normal", "playerdata/%loop-value%")
+                set {_first} to SG_checkFile("Players.Friends.%loop-value%.Date", "playerdata/%{_uuid}%")
+                set {_online} to uncolored {SG::Messages::Status_Offline}
+                {_user} parsed as offline player is online:
+                    set {_online} to uncolored {SG::Messages::Status_Online}
+                set {_V::Name} to "&6%{_user}%"
+                set {_uisland} to SG_checkFile("Players.Guild-Name", "playerdata/%loop-value%")
+                replace all "{STATUS}" with "%{_online}%" in {_V::Lore}
+                replace all "{GUILD}" with SG_checkFile("Datas.Name", "guilds/%{_uisland}%") in {_V::Lore}
+                replace all "{LASTLOGIN}" with "%{_last}%" in {_V::Lore}
+                replace all "{FIRST}" with "%{_first}%" in {_V::Lore}
+                replace all "{GLORE}" with "%{_plore}%" in {_V::Lore}
+                
+                SG_checkFile("Players.Skull-Item", "playerdata/%loop-value%") is not "*":
+                    set {_V::Item} to yaml value "Players.Skull-Item" from "plugins/SUPERGUILDS/playerdata/%loop-value%.yml"
+                SG_checkFile("Players.Skull-Item", "playerdata/%loop-value%") is "*":
+                    set {_V::Item} to player head
+                format gui slot {_x} of {_p} with {_V::Item} named "%{_V::Name}%" with lore "%{_V::Lore}%" to run:
+                    click type is left mouse button with shift:
+                        execute {_p} command "/guildfriends remove %{_user}%"
+                    click type is left mouse button:
+                        execute {_p} command "/guild invite %{_user}%"
+                    click type is right mouse button:
+                        SG_playerInfo({_p}, "%{_uuid}%", 6)
+            # 审核
+            {_type} is "7":
+                set {_uName} to SG_checkFile("Datas.Reserve-Players.%loop-value%.Username", "guilds/%{_pGuild}%")
+                set {_date} to SG_checkFile("Datas.Reserve-Players.%loop-value%.Application-Date", "guilds/%{_pGuild}%")
+                set {_status} to {SG::Messages::Status_Offline}
+                set {_uuid} to "%loop-value%"
+                {_uName} is online:
+                    set {_status} to {SG::Messages::Status_Online}
+                set {_V::Lore} to {SG::Messages::ReserveInformation_Lore}
+                set {_V::Name} to "&6%{_uName}% &7> {STATUS}"
+                SG_checkFile("Players.Skull-Item", "playerdata/%loop-value%") is not "*":
+                    set {_V::Item} to yaml value "Players.Skull-Item" from "plugins/SUPERGUILDS/playerdata/%loop-value%.yml"
+                SG_checkFile("Players.Skull-Item", "playerdata/%loop-value%") is "*":
+                    set {_V::Item} to player head
+                replace all "{NAME}" with "%{_uName}%" in {_V::Lore}
+                replace all "{DATE}" with "%{_date}%" in {_V::Lore}
+                replace all "{STATUS}" with "%{_status}%" in {_V::Name}
+                format gui slot {_x} of {_p} with {_V::Item} named "%{_V::Name}%" with lore "%{_V::Lore}%" to run:
+                    click type is middle mouse button:
+                        SG_playerInfo({_p}, {_uuid}, 7)
+                    click type is right mouse button:
+                        SG_reserveManagement({_p}, {_uuid}, "accept", {_page})
+                    click type is left mouse button:
+                        SG_reserveManagement({_p}, {_uuid}, "reject", {_page})
+            
+            add 1 to {_x}
+            add 1 to {_c}
+            add 1 to {_a}
+            {_c} >= 7:
+                add 2 to {_x}
+                set {_c} to 0
+                {_a} = (28 * {_i}):
+                    exit loop
+    else:
+        format gui slot 22 of {_p} with book and quill named "%{SG::Messages::PageAPI_NoVariable_%{_type}%}%"
+    
+    (amount of {_Variables::*}) > {_pageStart} + 28:
+        format gui slot 52 of {_p} with {SG::Item::PageAPI_NextPage_ItemNBT} named "%{SG::Messages::PageAPI_NextPage_Name}%" to run function SG_pageAPI({_p}, {_type}, ({_page} + 1))
+    {_page} > 0:
+        format gui slot 46 of {_p} with {SG::Item::PageAPI_PreviousPage_ItemNBT} named "%{SG::Messages::PageAPI_PreviousPage_Name}%" to run function SG_pageAPI({_p}, {_type}, ({_page} - 1)) 
+    
+    format gui slot 8 of {_p} with {SG::Item::Menu_PreviousMenu_Item} named "%{SG::Messages::Menu_PreviousMenu_Name}%" to run function SG_guildManagement({_p})
+    {_type} is "2" or "21" or "22":
+        format gui slot 49 of {_p} with compass named "&6%{SG::Messages::PageAPI_Header_2}%" with lore "%{SG::Messages::PageAPI_Header_Search_War_Lore}%" to run: 
+            click type is left mouse button:
+                SG_pageAPI({_p}, "21", 0)
+            click type is middle mouse button:
+                SG_pageAPI({_p}, "2", 0)
+            click type is right mouse button:
+                SG_pageAPI({_p}, "22", 0)
+    {_type} is "5" or "51" or "52" or "6":
+        unformat gui slot 8 of {_p}
+        {_pGuild} is "*":
+            format gui slot 8 of {_p} with {SG::Item::Menu_PreviousMenu_Item} named "%{SG::Messages::Menu_PreviousMenu_Name}%" to run function SG_guildSelectGUI({_p})
+        {_pGuild} is not "*":
+            format gui slot 8 of {_p} with {SG::Item::Menu_PreviousMenu_Item} named "%{SG::Messages::Menu_PreviousMenu_Name}%" to run function SG_guildManagement({_p})
+        {_type} is "5" or "51" or "52":
+            format gui slot 49 of {_p} with compass named "&6%{SG::Messages::PageAPI_Header_%{_type}%}%" with lore "%{SG::Messages::PageAPI_Header_Search_Guild_Lore}%" to run: 
+                click type is left mouse button:
+                    SG_pageAPI({_p}, "51", 0)
+                click type is middle mouse button:
+                    SG_pageAPI({_p}, "5", 0)
+                click type is right mouse button:
+                    SG_pageAPI({_p}, "52", 0)
+function SG_teleporterAPI(p: player, x: number, y: number, z: number, w: world):
+    set {_uuid} to uuid of {_p}
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+    if {_pGuild} is not "*":
+        send "%{SG::Messages::Prefix}% %{SG::Messages::Teleport_Starting}%" to {_p}
+        if SG_checkFile("Players.Teleport-Status", "playerdata/%{_uuid}%") is "*":
+            SG_writeFile("Players.Teleport-Status", "true", "playerdata/%{_uuid}%")
+            set {_time} to SG_checkFile("General.Teleport-Time", "config") parsed as integer
+            set {_loc1} to {_p}'s location
+            loop {_time} times:
+                {_p} is not online:
+                    SG_writeFile("Players.Teleport-Status", "*", "playerdata/%{_uuid}%")
+                    stop
+                if SG_checkFile("Players.Teleport-Status", "playerdata/%{_uuid}%") is "true":
+                    set {_loc2} to {_p}'s location
+                    {_loc1} is not {_loc2}:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::Teleport_Cancel}%" to {_p}
+                        SG_writeFile("Players.Teleport-Status", "*", "playerdata/%{_uuid}%")
+                        stop
+                    remove 1 from {_time}
+                    wait 1 second
+                    set {_message} to {SG::Messages::Teleporting_Message}
+                    replace all "{TIME}" with "%{_time}%" in {_message}
+                    send title "&b&l%uncolored {SG::Messages::Prefix}%" with subtitle "%{_message}%" for 1 seconds to {_p}
+                    SG_playSound({_p}, "ENTITY_CHICKEN_EGG", 1, 1)
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::Teleport_Cancel}%" to {_p}
+                    SG_writeFile("Players.Teleport-Status", "*", "playerdata/%{_uuid}%")
+                    stop
+            SG_writeFile("Players.Teleport-Status", "*", "playerdata/%{_uuid}%")
+            set {_loc} to location of block at location ({_x}, {_y}, {_z}) in world {_w}
+            teleport {_p} to {_loc}
+            send title "%{SG::Messages::Prefix}%" with subtitle "%{SG::Messages::Teleport_Done}%" for 3 seconds to {_p}
+            SG_playSound({_p}, "BLOCK_PISTON_EXTEND", 1, 1)
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::Already_Teleport}%" to {_p}
+    else:
+        send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to {_p}
+function SG_guildKick(p: player, kuuid: text):
+    set {_puuid} to uuid of {_p}
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_puuid}%")
+    set {_k} to SG_checkFile("Datas.Players.%{_kuuid}%.Username", "guilds/%{_pGuild}%")
+    set {_rankP} to SG_checkFile("Datas.Players.%{_puuid}%.Rank", "guilds/%{_pGuild}%")
+    set {_rankK} to SG_checkFile("Datas.Players.%{_kuuid}%.Rank", "guilds/%{_pGuild}%")
+    set {_pRankLevel} to SG_checkFile("Guild-Management.Ranks.%{_rankP}%-Permission-Level", "config") parsed as number
+    set {_kRankLevel} to SG_checkFile("Guild-Management.Ranks.%{_rankK}%-Permission-Level", "config") parsed as number
+    if {_puuid} is not {_kuuid}:
+        if {_pRankLevel} is greater than {_kRankLevel}:
+            if SG_rankCheck(uuid of {_p}, "Kick") is true:
+                set {_message} to {SG::Messages::Kicked_Player}
+                replace all "{KICKED}" with "%{_k}%" in {_message}
+                replace all "{PLAYER}" with "%{_p}%" in {_message}
+                SG_guildBroadcast({_pGuild}, "%{_message}%")
+                SG_writeFile("Players.Guild-Name", "*", "playerdata/%{_kuuid}%")
+                SG_valueDeleteAPI("Datas.Players", "%{_kuuid}%", "guilds/%{_pGuild}%")
+                set {_executable} to SG_checkFile("General.Executable-Commands.On-Guild-Leave", "config")
+                {_executable} is not "*"
+                replace all "{PLAYER}" with "%{_k}%" in {_executable}
+                replace all "{GUILD}" with "%{_pGuild}%" in {_executable}
+                execute console command "%{_executable}%"
+                SG_pageAPI({_p}, "3", 1)
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to {_p}
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::Kick_Error_No_Rank}%" to {_p}    
+    else:
+        send "%{SG::Messages::Prefix}% %{SG::Messages::No_Kick_Yourself}%" to {_p}
+function SG_alchemyGUI(p: player):
+    set {_uuid} to uuid of {_p} 
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+    if {_pGuild} is not "*":
+        set {_aLevel} to SG_checkFile("Datas.Buildings.Alchemy.Level", "guilds/%{_pGuild}%") parsed as integer
+        if {_aLevel} > 0:
+            open virtual chest inventory with size 3 named "%{SG::Messages::GUIPrefix}%%{SG::Messages::Menu_Alchemy_GUI}%" to {_p}
+            set {_x} to 0
+            loop 27 times:
+                {_x} is not 8 or 12 or 14:
+                    format gui slot {_x} of {_p} with {SG::Item::Menu_Item} named " "
+                add 1 to {_x}
+            format gui slot 8 of {_p} with {SG::Item::Menu_PreviousMenu_Item} named "%{SG::Messages::Menu_PreviousMenu_Name}%" to close then run function SG_guildManagement({_p})
+            set {_s} to 12
+            loop 2 times:
+                set {_eLevel} to SG_checkFile("Datas.Buildings.Alchemy.Effect-%loop-number%-Level", "guilds/%{_pGuild}%") parsed as integer
+                set {_nLevel} to {_eLevel} + 1
+                {_eLevel} >= 3:
+                    set {_nLevel} to 3
+                set {_priceLore} to {SG::Messages::Alchemy_Menu_Price}
+                set {_price} to SG_checkFile("Guild-Management.Buildings.Alchemy-Effect-%loop-number%.Level-%{_nLevel}%", "config") parsed as number  
+                replace all "{AMOUNT}" with "%{_price}% %coloured {SG::Messages::Resource_Color_Diamond}%%{SG::Messages::Resource_Diamond}%" in {_priceLore}
+                format gui slot {_s} of {_p} with {SG::Item::Alchemy_Type_%loop-number%_Item_%{_aLevel}%} named "%{SG::Messages::Alchemy_Type_%loop-number%_Name_%{_aLevel}%}%" with lore "||%{SG::Messages::Text_Feature}%|| %{SG::Messages::Alchemy_Menu_Lore_%loop-number%}%||||%{SG::Messages::Text_Price}%||%{_priceLore}%||||%{SG::Messages::Text_Buy}%" to close then run function SG_buyAlchemy({_p}, loop-number)
+                add 2 to {_s}
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::You_Cant_Alchemy}%" to {_p}
+    else:
+        send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to {_p}
+function SG_buyAlchemy(p: player, type: integer):
+    set {_uuid} to uuid of {_p}
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+    if SG_rankCheck(uuid of {_p}, "Alchemy") is true:
+        set {_eLevel} to SG_checkFile("Datas.Buildings.Alchemy.Effect-%{_type}%-Level", "guilds/%{_pGuild}%") parsed as integer
+        {_eLevel} is not set:
+            set {_eLevel} to 0
+            SG_writeFile("Datas.Buildings.Alchemy.Effect-%{_type}%-Level", "0", "guilds/%{_pGuild}%")
+        if {_eLevel} < 3:
+            set {_nLevel} to {_eLevel} + 1
+            set {_price} to SG_checkFile("Guild-Management.Buildings.Alchemy-Effect-%{_type}%.Level-%{_nLevel}%", "config") parsed as integer   
+            set {_cur} to SG_checkFile("Datas.Resources.Diamond.Has", "guilds/%{_pGuild}%") parsed as integer
+            if {_cur} is greater or equal to {_price}:
+                SG_valueRemoveAPI("Datas.Resources.Diamond.Has", {_price}, "guilds/%{_pGuild}%")
+                set {_name} to SG_checkFile("Datas.Name", "guilds/%{_pGuild}%")
+                
+                set {_msg} to {SG::Messages::Bought_Alchemy_Guild}
+                replace all "{GUILD}" with "%{_name}%" in {_msg}
+                replace all "{TYPE}" with "%{SG::Messages::Alchemy_Type_%{_Type}%_Name_%{_eLevel}%}%" in {_msg}
+                broadcast "%{SG::Messages::Prefix}% %{_msg}%"
+                
+                set {_msg} to {SG::Messages::Bought_Alchemy_Own}
+                replace all "{RANK}" with "%{SG::Messages::Rank_%{_r}%}%" in {_msg}
+                replace all "{PLAYER}" with "%{_p}%" in {_msg}
+                replace all "{TYPE}" with "%{SG::Messages::Alchemy_Type_%{_Type}%_Name_%{_eLevel}%}%" in {_msg}
+                SG_guildBroadcast({_pGuild},"%{_msg}%")
+                # 1:Experience 2:Luck 3:Attack 4:Defence
+                SG_writeFile("Datas.Buildings.Alchemy.Effect-%{_type}%-Level", "%{_nLevel}%", "guilds/%{_pGuild}%")
+            else:
+                set {_msg} to {SG::Messages::You_Need_More_Resource}
+                replace all "{RESOURCE}" with "%{SG::Messages::Resource_Diamond}%" in {_msg}
+                replace all "{AMOUNT}" with "%{_price} - {_cur}%" in {_msg}
+                send "%{SG::Messages::Prefix}% %{_msg}%" to {_p}
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::Alchemy_Max_Level}%" to {_p}
+    else:
+        send "%{SG::Messages::Prefix}% %{SG::Messages::Rank_Not_Enough}%" to {_p}
+function SG_storeGUI(p: player):
+    set {_uuid} to uuid of {_p} 
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+    if {_pGuild} is not "*":
+        open virtual chest inventory with size 3 named "%{SG::Messages::GUIPrefix}%%{SG::Messages::Store_GUI}%" to {_p}
+        set {_x} to 0
+        loop 27 times:
+            {_x} is not 8 or 10 or 11 or 12 or 13 or 14 or 15 or 16:
+                format gui slot {_x} of {_p} with {SG::Item::Menu_Item} named " " 
+            add 1 to {_x}
+        format gui slot 8 of {_p} with {SG::Item::Menu_PreviousMenu_Item} named "%{SG::Messages::Menu_PreviousMenu_Name}%" to close then run function SG_guildManagement({_p})
+        set {_x} to 10
+        add "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool" to {_resources::*}
+        loop {_resources::*}:
+            set {_has} to SG_checkFile("Datas.Resources.%loop-value%.Has", "guilds/%{_pGuild}%") parsed as number
+            set {_max} to SG_checkFile("Datas.Resources.%loop-value%.Max", "guilds/%{_pGuild}%") parsed as number
+            set {_per} to {_has}/{_max}
+            set {_percentage} to {_per}*100
+            set {_roundedHas} to rounded down {_per}*10
+            set {_lore} to ""
+            {_roundedHas} > 0:
+                loop {_roundedHas} times:
+                    set {_lore} to "%{_lore}%%colored {SG::Messages::Resource_Color_%loop-value-1%}%⬛"
+            set {_roundedLeft} to 10-{_roundedHas}
+            {_roundedLeft} > 0:
+                loop {_roundedLeft} times:
+                    set {_lore} to "%{_lore}%%colored {SG::Messages::Resource_Color_%loop-value-1%}%⬜"
+            set {_test} to {SG::Messages::Store_Status}
+            replace all "{NUMBER}" with "%{_has}%/%{_max}% (%%%{_percentage}%)" in {_test}        
+            set {_donate} to "||||%{SG::Messages::Resource_Donate_Lore}%"
+            format gui slot {_x} of {_p} with {SG::Item::NBT_Storage_Items_%loop-value%} named "%{SG::Messages::Resource_%loop-value%}%&r &8[%coloured {SG::Messages::Resource_Color_%loop-value%}%%{SG::Messages::Resource_Unicode_%loop-value%}%&8]" with lore "||%{_test}%||&7 → %{_lore}%%{_donate}%" to close then run function SG_donateGUI({_p}, {_pGuild})
+            add 1 to {_x}
+        set {_getGuildTimer} to SG_checkFile("Datas.Worker-Time", "guilds/%{_pGuild}%")
+        set {_workerReady} to SG_timeChecker({_getGuildTimer}, 0)
+        if {_workerReady} is "true":
+            set {_lore} to "%{SG::Messages::Resource_Worker_Time_Ready}%"
+        else:
+            set {_lore} to {SG::Messages::Resource_Worker_Time_Rest}
+            replace all "{TIME}" with "%{_workerReady}%" in {_lore}
+        format gui slot {_x} of {_p} with {SG::Item::NBT_Storage_Items_Worker} named "%{SG::Messages::Resource_Worker}%&r &8[%coloured {SG::Messages::Resource_Color_Worker}%%{SG::Messages::Resource_Unicode_Worker}%&8]" with lore "%{_lore}%"
+    else:
+        send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to {_p}
+function SG_buildInfo(player: player, type: text):
+    set {_uuid} to uuid of {_player}
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+    set {_maxLevel::Townhall} to 6
+    set {_maxLevel::Barrack} to 5
+    set {_maxLevel::Storage} to 8
+    set {_maxLevel::Alchemy} to 3   
+    set {_book} to a new book
+    set {_level} to SG_checkFile("Datas.Buildings.%{_type}%.Level", "guilds/%{_pGuild}%") parsed as number
+    add text component coloured "%{SG::Messages::Header_Build_Book}%" to {_components::*}
+    add text component coloured "%nl%%nl%" to {_components::*}
+    add text component coloured "%{SG::Messages::Book_Build_Name}%&0%uncolored {SG::Messages::Buildings_Name_%{_type}%}%" to {_components::*}
+    add text component coloured nl to {_components::*}
+    add text component coloured "%{SG::Messages::Book_Build_Level}%%{SG::Messages::Romen_Num_%{_level}%}%" to {_components::*}
+    add text component coloured nl to {_components::*}
+    add text component coloured "%{SG::Messages::Book_Build_Requires}%" to {_components::*}
+    add text component coloured nl to {_components::*}
+    loop "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool": 
+        set {_text} to ""
+        loop-value is "Wood":
+            set {_text} to " "
+        set {_needlevel} to {_level}+1
+        set {_has} to SG_checkFile("Datas.Resources.%loop-value%.Has", "guilds/%{_pGuild}%") parsed as number
+        set {_required} to SG_checkFile("Guild-Management.Buildings.%{_type}%-Upgrade.%loop-value%", "config") parsed as number
+        set {_required} to {_required}*{_needlevel}
+        set {_cl} to "&4"
+        {_has} is greater or equal to {_required}:
+            set {_cl} to "&2"
+        set {_res} to a new text component with "%coloured {_cl}%%{_text}%%{SG::Messages::Resource_Unicode_%loop-value%}%"  
+        add hover event with action SHOW_TEXT with text "%{SG::Messages::Resource_Color_%loop-value%}%%{SG::Messages::Resource_%loop-value%}%%nl%%{SG::Messages::Book_Required_Text}%%{_required}%%nl%%{SG::Messages::Book_Have_Text}%%{_has}%" to text component {_res}
+        add {_res} to {_components::*}
+        clear {_res}
+        loop-value is not "Wool":
+            add text component coloured " &8&m-&r " to {_components::*}
+    add text component coloured "%nl%%nl%" to {_components::*}
+    add text component coloured " %{SG::Messages::Building_Desc_%{_type}%}% %nl%" to {_components::*}
+    add text component coloured nl to {_components::*}
+    set {_lore.Upgrade} to {SG::Messages::Upgrade_Emblem_Lore}
+    set {_lore.Quit} to {SG::Messages::Quit_Emblem_Lore}
+    set {_lore.Max} to uncolored {SG::Messages::Build_Max}
+    set {_status} to SG_checkFile("Datas.Buildings.%{_type}%.Status", "guilds/%{_pGuild}%") parsed as number
+    if {_status} is 0:
+        set {_button} to "Upgrade"
+        {_level} is {_maxLevel::%{_type}%}
+        set {_button} to "Max" 
+    else:
+        set {_getGuildTimer} to SG_checkFile("Datas.Buildings.%{_type}%.Time", "guilds/%{_pGuild}%")
+        set {_buildCheck} to SG_timeChecker({_getGuildTimer}, 0)
+        set {_button} to "Timer"
+        set {_lore.Timer} to uncolored {SG::Messages::Build_Wait}
+        replace all "{TIME}" with "%{_buildCheck}%" in {_lore.Timer}
+        if {_buildCheck} is "true":
+            set {_button} to "Done"
+            set {_lore.Done} to {SG::Messages::Done_Emblem_Lore}
+    add "%{_button}%" and "Quit" to {_Buttons::*}
+    loop {_Buttons::*}:
+        set {_b} to a new text component with coloured "    %{SG::Messages::%loop-value%_Emblem_Button}%"
+        if loop-value is "Quit":
+            add click event with action RUN_COMMAND with execute "/g buildings" to text component {_b}
+        else:
+            add click event with action RUN_COMMAND with execute "/g buildings upgrade %{_type}%" to text component {_b}
+        add hover event with action SHOW_TEXT with text "%{_lore.%loop-value%}%" to text component {_b}
+        add {_b} to {_components::*}
+    add text component {_components::*} to book {_book}
+    open book {_book} to {_player}
+function SG_buildingsGUI(p: player):
+    set {_uuid} to uuid of {_p}
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+    if {_pGuild} is not "*":
+        open virtual chest inventory with size 3 named "%{SG::Messages::GUIPrefix}%%{SG::Messages::Buildings_GUI}%" to {_p}
+        set {_count} to 10
+        set {_x} to 0
+        format gui slot 8 of {_p} with {SG::Item::Menu_PreviousMenu_Item} named "%{SG::Messages::Menu_PreviousMenu_Name}%" to close then run function SG_guildManagement({_p})
+        loop 27 times:
+            {_x} is not 8 or 10 or 12 or 14 or 16:
+                format gui slot {_x} of {_p} with {SG::Item::Menu_Item} named " " 
+            add 1 to {_x}
+        set {_maxLevel::Townhall} to 6
+        set {_maxLevel::Barrack} to 5
+        set {_maxLevel::Storage} to 8
+        set {_maxLevel::Alchemy} to 3   
+        loop "Townhall" and "Barrack" and "Storage" and "Alchemy":
+            set {_lore} to {SG::Messages::Buildings_Lore}
+            set {_status} to SG_checkFile("Datas.Buildings.%loop-value%.Status", "guilds/%{_pGuild}%") parsed as number
+            set {_level} to SG_checkFile("Datas.Buildings.%loop-value%.Level", "guilds/%{_pGuild}%") parsed as number
+            replace all "{LEVEL}" with "%{SG::Messages::Romen_Num_%{_level}%}%" in {_lore}      
+            if {_status} is 0:
+                replace all "{TIMESHOW}" with "" in {_lore}
+            else:
+                set {_getGuildTimer} to SG_checkFile("Datas.Buildings.%loop-value%.Time", "guilds/%{_pGuild}%")
+                set {_buildCheck} to SG_timeChecker({_getGuildTimer}, 0)
+                if {_buildCheck} is "true":
+                    replace all "{STATUS}" with "%{SG::Messages::Building_Status_2}%" in {_lore}
+                    replace all "{TIMESHOW}" with "" in {_lore}
+                else:
+                    replace all "{TIMESHOW}" with "%{SG::Messages::Buildings_Time_Remaining}%" in {_lore}
+                    replace all "{TIME}" with "%{_buildCheck}%" in {_lore}
+            {_status} is 0:
+                {_level} is equal to {_maxLevel::%loop-value%}
+                set {_status} to 3
+            replace all "{STATUS}" with "%{SG::Messages::Building_Status_%{_status}%}%" in {_lore}
+            format gui slot {_count} of {_p} with {SG::Item::Buildings_ItemNBT_%loop-value%} named "&2%{SG::Messages::Buildings_Name_%loop-value%}%" with lore "%{_lore}%" to close then run function SG_buildInfo({_p}, "%loop-value%")
+            add 2 to {_count}
+    else:
+        send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to {_p}
+function SG_rankGUI(p: player, tuuid: text):
+    set {_puuid} to uuid of {_p}
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_puuid}%")
+    set {_rankP} to SG_checkFile("Datas.Players.%{_puuid}%.Rank", "guilds/%{_pGuild}%")
+    set {_rankT} to SG_checkFile("Datas.Players.%{_tuuid}%.Rank", "guilds/%{_pGuild}%")
+    set {_pRankLevel} to SG_checkFile("Guild-Management.Ranks.%{_rankP}%-Permission-Level", "config") parsed as number
+    set {_permission} to SG_checkFile("Datas.Players.%{_tuuid}%.Permissions", "guilds/%{_pGuild}%")
+    set {_t} to SG_checkFile("Datas.Players.%{_tuuid}%.Username", "guilds/%{_pGuild}%")
+    {_permission} is "*":
+        set {_permission} to SG_checkFile("Guild-Management.Ranks.%{_rankT}%-Permissions", "config")
+        SG_writeFile("Datas.Players.%{_tuuid}%.Permissions", "%{_permission}%", "guilds/%{_pGuild}%") 
+    set {_list::*} to {_permission} split at ","
+    remove "" and " " from {_list::*}
+    set {_perm} to "&f?"
+    size of {_list::*} > 0:
+        loop {_list::*}:
+            add uncolored {SG::Messages::RankGUI_PermName_%loop-value%} to {_list2::*}
+        set {_perm} to " &f● %{_list2::*}%"
+        replace all " and " with "|| &f● " in {_perm}
+        replace all ", " with "|| &f● " in {_perm}
+    set {_sLevel} to SG_checkFile("Guild-Management.Ranks.%{_rankT}%-Permission-Level", "config") parsed as number
+    if {_puuid} is not {_tuuid}:
+        if {_pRankLevel} is greater than {_sLevel}:
+            if SG_rankCheck(uuid of {_p}, "Rank") is true:
+                open virtual chest inventory with size 4 named "%{SG::Messages::GUIPrefix}%%{SG::Messages::RankGUI_Header}%" to {_p}
+                set {_x} to 9
+                loop 9 times:
+                    format gui slot {_x} of {_p} with {SG::Item::Menu_Item} named " "
+                    add 1 to {_x}
+                set {_lore} to {SG::Messages::RankGUI_CurrentRank}
+                replace all "{RANK}" with "%{SG::Messages::Rank_%{_rankT}%}%" in {_lore}
+                SG_checkFile("Players.Skull-Item", "playerdata/%{_tuuid}%") is not "*":
+                    set {_V::Item} to yaml value "Players.Skull-Item" from "plugins/SUPERGUILDS/playerdata/%{_tuuid}%.yml"
+                SG_checkFile("Players.Skull-Item", "playerdata/%{_tuuid}%") is "*":
+                    set {_V::Item} to player head
+                format gui slot 1 of {_p} with {_V::Item} named "&6%{_t}%" with lore "%{_lore}%%{_perm}%"
+                format gui slot 8 of {_p} with {SG::Item::Menu_PreviousMenu_Item} named "%{SG::Messages::Menu_PreviousMenu_Name}%" to close then run function SG_pageAPI({_p}, "3", 0)
+                set {_x} to 3
+                set {_item.Leader} to {SG::Item::Rank_Leader_ItemNBT}
+                set {_item.General} to {SG::Item::Rank_General_ItemNBT}
+                set {_item.Captain} to {SG::Item::Rank_Captain_ItemNBT}
+                set {_item.Member} to {SG::Item::Rank_Member_ItemNBT}
+                set {_item.On} to {SG::Item::Rank_On_ItemNBT}
+                set {_item.Off} to {SG::Item::Rank_Off_ItemNBT}
+                loop "Member" and "Captain" and "General" and "Leader": 
+                    set {_pt.%loop-value%} to SG_checkFile("Guild-Management.Ranks.%loop-value%-Permissions", "config")
+                    set {_pl.%loop-value%::*} to {_pt.%loop-value%} split at ","
+                    loop {_pl.%loop-value%::*}:
+                        add uncolored {SG::Messages::RankGUI_PermName_%loop-value-2%} to {_pl2.%loop-value-1%::*}
+                    set {_pd.%loop-value%} to " &f● %{_pl2.%loop-value%::*}%"
+                    replace all " and " with "|| &f● " in {_pd.%loop-value%}
+                    replace all ", " with "|| &f● " in {_pd.%loop-value%}
+                    format gui slot {_x} of {_p} with {_item.%loop-value%} named "%{SG::Messages::Rank_%loop-value%}%" with lore "%{SG::Messages::RankGUI_UsePresetRank}%||%{_pd.%loop-value%}%" to close then run function SG_guildRank({_p}, {_tuuid}, "%loop-value%", "*")
+                    add 1 to {_x}
+                set {_x} to 18
+                set {_Perms::*} to "Disband", "Upgrade", "Alchemy", "Vault", "Kick", "Rank", "Condition", "Sethome", "Claim", "Emblem", "Invite", "Ally", "War", "Donate", "Break", "Place" and "Interact"
+                loop {_Perms::*}:
+                    SG_rankCheck("%{_tuuid}%", "%loop-value%") is true:
+                        format gui slot {_x} of {_p} with player head with custom nbt "%{_item.On}%" named "%{SG::Messages::RankGUI_PermName_%loop-value%}%" with lore "%{SG::Messages::RankGUI_ChangePermission_Off}%" to close then run function SG_guildRank({_p}, {_tuuid}, "*", "%loop-value%")
+                    SG_rankCheck("%{_tuuid}%", "%loop-value%") is false:
+                        format gui slot {_x} of {_p} with player head with custom nbt "%{_item.Off}%" named "%{SG::Messages::RankGUI_PermName_%loop-value%}%" with lore "%{SG::Messages::RankGUI_ChangePermission_On}%" to close then run function SG_guildRank({_p}, {_tuuid}, "*", "%loop-value%")                       
+                    add 1 to {_x}
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::Rank_Not_Enough}%" to {_p}   
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::Rank_Not_Enough}%" to {_p}   
+    else:   
+        send "%{SG::Messages::Prefix}% %{SG::Messages::Rank_Yourself}%" to {_p}
+function SG_guildInfo(p: player, pGuild: text):
+    set {_uuid} to uuid of {_p}
+    file "plugins/SUPERGUILDS/guilds/%{_pGuild}%.yml" exists
+    set {_name} to SG_checkFile("Datas.Name", "guilds/%{_pGuild}%")
+    set {_design} to SG_checkFile("Datas.Emblem", "guilds/%{_pGuild}%")#
+    set {_points} to SG_checkFile("Datas.War-Points", "guilds/%{_pGuild}%")#
+    set {_creator} to SG_checkFile("Datas.Creator", "guilds/%{_pGuild}%")#
+    set {_time} to SG_checkFile("Datas.Create-Time.Normal", "guilds/%{_pGuild}%")#
+    set {_leader} to SG_checkFile("Datas.Leader", "guilds/%{_pGuild}%")#
+    set {_level} to SG_checkFile("Datas.Division", "guilds/%{_pGuild}%")#
+    set {_claimed} to SG_checkFile("Datas.Claimed-Land", "guilds/%{_pGuild}%")
+    set {_maxslot} to SG_checkFile("Datas.Max-Slot", "guilds/%{_pGuild}%")
+    set {_slot} to SG_valueArraySize("Datas.Players", "0", "guilds/%{_pGuild}%")
+    set {_kills} to SG_checkFile("Datas.War-Kills", "guilds/%{_pGuild}%")
+    set {_deaths} to SG_checkFile("Datas.War-Deaths", "guilds/%{_pGuild}%")
+    set {_deaths} to SG_checkFile("Datas.War-Deaths", "guilds/%{_pGuild}%")
+    open virtual chest inventory with size 3 named "%{SG::Messages::GUIPrefix}%%{SG::Messages::Guild_Info_Header}%" to {_p}
+    set {_lore1} to {SG::Messages::Guild_Info_1_Lore}
+    set {_lore2} to {SG::Messages::Guild_Info_2_Lore}
+    set {_lore3} to {SG::Messages::Guild_Info_3_Lore}
+    {_design} is "*":
+        set {_design} to "f"
+        loop 64 times:
+            set {_design} to "%{_design}%;f"
+    set {_unicodes::*} to {_design} split at ";"
+    set {_no} to 0
+    loop 8 times:   
+        set {_anamsg} to ""
+        loop 8 times:
+            add 1 to {_no}
+            clear {_msg}
+            set {_msg} to coloured "&%{_unicodes::%{_no}%}%█"           
+            set {_anamsg} to "%{_anamsg}%%{_msg}%"
+        set {_dlore%loop-number%} to "%{_anamsg}%"
+    set {_design} to "%{_dlore1}%||%{_dlore2}%||%{_dlore3}%||%{_dlore4}%||%{_dlore5}%||%{_dlore6}%||%{_dlore7}%||%{_dlore8}%"
+    replace all "{NAME}" with "%{_name}%" in {_lore1}
+    replace all "{EMBLEM}" with "%{_design}%" in {_lore1}
+    replace all "{TIME}" with "%{_time}%" in {_lore2}
+    replace all "{CREATOR}" with "%{_creator}%" in {_lore2}
+    replace all "{LEADER}" with "%{_leader}%" in {_lore1}
+    replace all "{KILLS}" with "%{_kills}%" in {_lore3}
+    replace all "{DEATHS}" with "%{_deaths}%" in {_lore3}
+    replace all "{POINTS}" with "%{_points}%" in {_lore3}
+    replace all "{LEVEL}" with "%{SG::Messages::Divisions_%{_level}%}%" in {_lore3}
+    replace all "{CLAIMED}" with "%{_claimed}%" in {_lore3}
+    set {_online} to {SG::Messages::Number_Online}  
+    set {_x} to SG_valueArraySize("Datas.Players", "Online", "guilds/%{_pGuild}%")
+    replace all "{PLAYER}" with "%{_x}%" in {_online}
+    replace all "{PLAYERS}" with "%{_slot}%" in {_lore3}
+    replace all "{MAX}" with "%{_maxslot}% %{_online}%" in {_lore3}
+    set {_x} to 0
+    loop 27 times:
+        {_x} is not 8 or 11 or 13 or 15:
+            format gui slot {_x} of {_p} with {SG::Item::Menu_Item} named " " 
+        add 1 to {_x}
+    format gui slot 8 of {_p} with {SG::Item::Menu_PreviousMenu_Item} named "%{SG::Messages::Menu_PreviousMenu_Name}%" to close then run function SG_guildManagement({_p})
+    format gui slot 11 of {_p} with paper named "%{SG::Messages::Guild_Info_1}%" with lore "%{_lore1}%"
+    format gui slot 13 of {_p} with gold helmet named "%{SG::Messages::Guild_Info_3}%" with lore "%{_lore3}%"
+    format gui slot 15 of {_p} with clock named "%{SG::Messages::Guild_Info_2}%" with lore "%{_lore2}%"
+function SG_changeJoin(p: player):
+    set {_uuid} to uuid of {_p}
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+    if {_pGuild} is not "*":
+        if SG_rankCheck(uuid of {_p}, "Condition") is true:
+            set {_current} to SG_checkFile("Datas.Join-Status", "guilds/%{_pGuild}%")
+            {_current} is "0":
+                set {_nextStatus} to "1"
+            {_current} is "1":
+                set {_nextStatus} to "2"
+            {_current} is "2":
+                set {_nextStatus} to "0"
+            SG_writeFile("Datas.Join-Status", "%{_nextStatus}%", "guilds/%{_pGuild}%")
+            format gui slot 33 of {_p} with {SG::Item::Join_Status_ItemNBT_%{_nextStatus}%} named "%{SG::Messages::Join_Status_Name_%{_nextStatus}%}%" with lore "%{SG::Messages::Join_Status_Lore_%{_nextStatus}%}%%{SG::Messages::ChangeJoinStatus_Lore}%" to run function SG_changeJoin({_p})
+            SG_playSound({_p}, "ENTITY_ENDERMEN_TELEPORT", 1, 1)
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to {_p}
+    else:
+        send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to {_p}
+function SG_changeNotifier(p: player):
+    set {_t} to SG_checkFile("Players.Notifier", "playerdata/%uuid of {_p}%")
+    {_t} is "0":
+        SG_writeFile("Players.Notifier", "1", "playerdata/%uuid of {_p}%")
+        format gui slot 47 of {_p} with {SG::Item::Notifier_Status_ItemNBT_1} named "%{SG::Messages::Notifier_Status_Name_1}%" with lore "%{SG::Messages::Notifier_Status_Lore_1}%%{SG::Messages::ChangeNotifierStatus_Lore}%" to run function SG_changeNotifier({_p})
+    {_t} is "1":
+        SG_writeFile("Players.Notifier", "0", "playerdata/%uuid of {_p}%")
+        format gui slot 47 of {_p} with {SG::Item::Notifier_Status_ItemNBT_0} named "%{SG::Messages::Notifier_Status_Name_0}%" with lore "%{SG::Messages::Notifier_Status_Lore_0}%%{SG::Messages::ChangeNotifierStatus_Lore}%" to run function SG_changeNotifier({_p})
+    SG_playSound({_p}, "ENTITY_ENDERMEN_TELEPORT", 1, 1)
+function SG_inviteGUI(p: player, guild: text, type: text):
+    set {_uuid} to uuid of {_p}
+    {_type} is "gui":
+        open virtual chest inventory with size 3 named "%{SG::Messages::GUIPrefix}%%{SG::Messages::Invite_GUI}%" to {_p}
+        set {_msg} to {SG::Messages::InviteC_Accept}
+        set {_gName} to SG_checkFile("Datas.Name", "guilds/%{_guild}%")
+        replace all "{GUILD}" with "%{_gName}%" in {_msg}
+        set {_x} to 0
+        loop 27 times:
+            {_x} is not 11 or 15:
+                format gui slot {_x} of {_p} with {SG::Item::Menu_Item} named " " 
+            add 1 to {_x}
+        format gui slot 11 of {_p} with green clay named "%{_msg}%" to close then run function SG_inviteGUI({_p}, {_guild}, "accept")
+        format gui slot 15 of {_p} with red clay named "%{SG::Messages::InviteC_Reject}%" to close then run function SG_inviteGUI({_p}, {_guild}, "reject")
+        SG_playSound({_p}, "ENTITY_ARROW_HIT", 1, 1)
+    {_type} is "reject":
+        send "%{SG::Messages::Prefix}% %{SG::Messages::You_Reject_Invitation}%" to {_p}
+    {_type} is "accept":
+        SG_checkFile("General.Races.Enabled", "config") is "*" or "true":
+            set {_race} to SG_checkFile("Players.Race", "playerdata/%{_uuid}%")
+            {_race} is "*" or "0":
+                send "%{SG::Messages::Prefix}% %{SG::Messages::Select_Race}%" to {_p}
+                stop
+        set {_maxslot} to SG_checkFile("Datas.Max-Slot", "guilds/%{_guild}%") parsed as integer
+        set {_s} to SG_valueArraySize("Datas.Players", "0", "guilds/%{_guild}%")
+        {_s} is greater or equal to {_maxslot}: 
+            send "%{SG::Messages::Prefix}% %{SG::Messages::This_Guild_Is_Full}%" to {_p}
+            stop
+        SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%") is not "*":
+            execute {_p} command "/g leave"
+        SG_writeFile("Datas.Players.%{_uuid}%.Username", "%{_p}%", "guilds/%{_guild}%")                
+        SG_writeFile("Datas.Players.%{_uuid}%.Rank", "Member", "guilds/%{_guild}%")
+        SG_writeFile("Datas.Players.%{_uuid}%.Join-Date", "%now%", "guilds/%{_guild}%")
+        SG_writeFile("Datas.Players.%{_uuid}%.War-Kills", "0", "guilds/%{_guild}%")
+        SG_writeFile("Datas.Players.%{_uuid}%.War-Deaths", "0", "guilds/%{_guild}%")   
+        loop "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool":
+            SG_writeFile("Datas.Players.%{_uuid}%.Donated-Resource.%loop-value%", "0", "guilds/%{_guild}%")        
+        SG_writeFile("Players.Guild-Name", "%{_guild}%", "playerdata/%{_uuid}%")           
+        
+        set {_gName} to SG_checkFile("Datas.Name", "guilds/%{_guild}%")
+        set {_msg1} to {SG::Messages::You_Joined_Guild}
+        replace all "{GUILD}" with "%{_gName}%" in {_msg1}
+        send "%{SG::Messages::Prefix}% %{_msg1}%" to {_p}
+        
+        set {_msg2} to {SG::Messages::Player_Joined_Guild}
+        replace all "{PLAYER}" with "%{_p}%" in {_msg2}
+        replace all "{GUILD}" with "%{_gName}%" in {_msg2}
+        SG_guildBroadcast({_guild}, {_msg2})
+        
+        set {_executable} to SG_checkFile("General.Executable-Commands.On-Guild-Join", "config")
+        {_executable} is not "*"
+        replace all "{PLAYER}" with "%{_p}%" in {_executable}
+        replace all "{GUILD}" with "%{_guild}%" in {_executable}
+        replace all "{X}" with "%x coordinate of {_p}%" in {_executable}
+        replace all "{Y}" with "%y coordinate of {_p}%" in {_executable}
+        replace all "{Z}" with "%z coordinate of {_p}%" in {_executable}
+        replace all "{WORLD}" with "%world of {_p}%" in {_executable}
+        execute console command "%{_executable}%"
+function SG_playerInfo(p: player, tuuid: text, back: number):
+    set {_tGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_tuuid}%")
+    SG_checkFile("Players.Guild-Name", "playerdata/%{_tuuid}%") is "*":
+        set {_Lore.1} to "%{SG::Messages::Player_Info_No_Guild}%"
+    SG_checkFile("Players.Guild-Name", "playerdata/%{_tuuid}%") is not "*":
+        set {_rank} to SG_checkFile("Datas.Players.%{_tuuid}%.Rank", "guilds/%{_tGuild}%")
+        set {_date} to SG_checkFile("Datas.Players.%{_tuuid}%.Join-Date", "guilds/%{_tGuild}%")
+        set {_warkills} to SG_checkFile("Datas.Players.%{_tuuid}%.War-Kills", "guilds/%{_tGuild}%")
+        set {_wardeaths} to SG_checkFile("Datas.Players.%{_tuuid}%.War-Deaths", "guilds/%{_tGuild}%")      
+        set {_name} to SG_checkFile("Datas.Name", "guilds/%{_tGuild}%")
+        set {_Lore.1} to "%{SG::Messages::PlayerStats_1}%||%{SG::Messages::Guild_Info_Lore}%"
+        replace all "{DONATEINFO}" with "%{SG::Messages::Donated_List_New}%" in {_Lore.1}
+        replace all "{GUILD}" with "%{_name}%" in {_Lore.1}
+        replace all "{RANK}" with "%{SG::Messages::Rank_%{_rank}%}%" in {_Lore.1}
+        replace all "{DATE}" with "%{_date}%" in {_Lore.1}
+        replace all "{KILLS}" with "%{_warkills}%" in {_Lore.1}
+        replace all "{DEATHS}" with "%{_wardeaths}%" in {_Lore.1}
+        loop "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool":
+            set {_lv} to "%loop-value%" to all upper case
+            set {_donated} to SG_checkFile("Datas.Players.%{_tuuid}%.Donated-Resource.%loop-value%", "guilds/%{_tGuild}%")
+            replace all "{D%{_lv}%}" with "%{_donated}%" in {_Lore.1}
+    set {_Lore.2} to {SG::Messages::PlayerStats_2}
+    replace all "{DONATEINFO}" with "%{SG::Messages::Donated_List_New}%" in {_Lore.2}
+    set {_kills} to SG_checkFile("Players.Kills", "playerdata/%{_tuuid}%") parsed as number
+    set {_deaths} to SG_checkFile("Players.Deaths", "playerdata/%{_tuuid}%") parsed as number
+    set {_kda} to {_kills}/{_deaths}
+    set {_seen} to SG_checkFile("Players.Last-Seen.Normal", "playerdata/%{_tuuid}%")
+    set {_t} to SG_checkFile("Datas.Players.%{_tuuid}%.Username", "guilds/%{_tGuild}%")
+    replace all "{PLAYER}" with "%{_t}%" in {_Lore.2}
+    replace all "{KILLS}" with "%{_kills}%" in {_Lore.2}
+    replace all "{DEATHS}" with "%{_deaths}%" in {_Lore.2}
+    replace all "{KDA}" with "%{_kda}%" in {_Lore.2}
+    {_t} parsed as offline player is online:
+        set {_Lore.3} to {SG::Messages::PlayerStats_3}
+        replace all "{HEALTH}" with "%health of {_t} parsed as offline player%" in {_Lore.3}
+        replace all "{HUNGER}" with "%hunger of {_t} parsed as offline player%" in {_Lore.3}
+    {_t} parsed as offline player is offline:
+        set {_Lore.3} to {SG::Messages::PlayerStats_4}
+        replace all "{SEEN}" with "%{_seen}%" in {_Lore.3}
+    loop "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool":
+        set {_lv} to "%loop-value%" to all upper case
+        set {_donated} to SG_checkFile("Players.Donated-Resource.%loop-value%", "playerdata/%{_tuuid}%")
+        replace all "{D%{_lv}%}" with "%{_donated}%" in {_Lore.2}
+    open virtual chest inventory with size 3 named "%{SG::Messages::GUIPrefix}%%{SG::Messages::Player_Stats}%" to {_p}    
+    set {_x} to 0
+    SG_checkFile("Players.Skull-Item", "playerdata/%{_tuuid}%") is not "*":
+        set {_V::Item} to yaml value "Players.Skull-Item" from "plugins/SUPERGUILDS/playerdata/%{_tuuid}%.yml"
+    SG_checkFile("Players.Skull-Item", "playerdata/%{_tuuid}%") is "*":
+        set {_V::Item} to player head
+    loop 27 times:
+        {_x} is not 11 or 13 or 15:
+            format gui slot {_x} of {_p} with {SG::Item::Menu_Item} named " " 
+        add 1 to {_x}
+    {_back} is not 0:
+        format gui slot 8 of {_p} with {SG::Item::Menu_PreviousMenu_Item} named "%{SG::Messages::Menu_PreviousMenu_Name}%" to close then run function SG_pageAPI({_p}, "%{_back}%", 0)
+    format gui slot 11 of {_p} with book and quill named "%{SG::Messages::Player_Info_Name_1}%" with lore "%{_Lore.1}%" to close then run function SG_guildInfo({_p}, {_tGuild})
+    format gui slot 13 of {_p} with {_V::Item} named "%{SG::Messages::Player_Info_Name_2}%" with lore "%{_Lore.2}%"
+    format gui slot 15 of {_p} with paper named "%{SG::Messages::Player_Info_Name_3}%" with lore "%{_Lore.3}%" 
+function SG_reserveManagement(p: player, tuuid: text, type: text, back: number):
+    {_type} is "reject":
+        if SG_rankCheck(uuid of {_p}, "invite") is true:
+            set {_uuid} to uuid of {_p}
+            set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+            SG_valueDeleteAPI("Datas.Reserve-Players", "%{_tuuid}%", "guilds/%{_pGuild}%")
+            set {_msg} to {SG::Messages::You_Reject_Application}
+            set {_sp} to SG_checkFile("Players.Username", "playerdata/%{_tuuid}%")
+            replace all "{PLAYER}" with "%{_sp}%" in {_msg}
+            send "%{SG::Messages::Prefix}% %{_msg}%" to {_p}
+            SG_pageAPI({_p}, "7", {_back})
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to {_p}
+    {_type} is "accept":
+        if SG_rankCheck(uuid of {_p}, "invite") is true:
+            set {_uuid} to uuid of {_p}
+            set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+            set {_sp} to SG_checkFile("Players.Username", "playerdata/%{_tuuid}%")
+            set {_downText} to {_pGuild} to all lower case
+            if SG_checkFile("Players.Guild-Name", "playerdata/%{_tuuid}%") is "*":
+                set {_maxslot} to SG_checkFile("Datas.Max-Slot", "guilds/%{_downText}%") parsed as integer
+                if SG_valueArraySize("Datas.Players", "0", "guilds/%{_downText}%") is less than {_maxslot}:
+                    set {_number} to SG_checkFile("Join-Guild-Cooldown-Minute", "config") parsed as number
+                    set {_newTime} to SG_getTime(year, month, day, hour, minute+{_number}, second, "hash")
+                    SG_valueDeleteAPI("Datas.Reserve-Players", "%{_tuuid}%", "guilds/%{_downText}%")
+                    SG_writeFile("Players.Join-New-Guild-Time", "%{_newTime}%", "playerdata/%{_tuuid}%")
+                    SG_writeFile("Players.Guild-Name", "%{_downText}%", "playerdata/%{_tuuid}%")
+                    SG_writeFile("Datas.Players.%{_tuuid}%.Username", "%{_sp}%", "guilds/%{_downText}%")
+                    SG_writeFile("Datas.Players.%{_tuuid}%.Rank", "Member", "guilds/%{_downText}%")
+                    SG_writeFile("Datas.Players.%{_tuuid}%.Join-Date", "%now%", "guilds/%{_downText}%")
+                    SG_writeFile("Datas.Players.%{_tuuid}%.War-Kills", "0", "guilds/%{_downText}%")
+                    SG_writeFile("Datas.Players.%{_tuuid}%.War-Deaths", "0", "guilds/%{_downText}%") 
+                    loop "Wood" and "Stone" and "Iron" and "Gold" and "Diamond" and "Wool":
+                        SG_writeFile("Datas.Players.%{_tuuid}%.Donated-Resource.%loop-value%", "0", "guilds/%{_downText}%")
+
+                    set {_gName} to SG_checkFile("Datas.Name", "guilds/%{_downText}%")
+                    {_sp} parsed as offline player is online:
+                        set {_msg1} to {SG::Messages::You_Joined_Guild}
+                        replace all "{GUILD}" with "%{_gName}%" in {_msg1}
+                        send "%{SG::Messages::Prefix}% %{_msg1}%" to {_sp} parsed as player
+
+                    set {_msg2} to {SG::Messages::Player_Joined_Guild}
+                    replace all "{PLAYER}" with "%{_sp}%" in {_msg2}
+                    replace all "{GUILD}" with "%{_gName}%" in {_msg2}
+                    SG_guildBroadcast({_downText}, {_msg2})
+
+                    set {_executable} to SG_checkFile("General.Executable-Commands.On-Guild-Join", "config")
+                    {_executable} is not "*"
+                    replace all "{PLAYER}" with "%{_sp}%" in {_executable}
+                    replace all "{GUILD}" with "%{_downText}%" in {_executable}
+                    execute console command "%{_executable}%"
+                    
+                    SG_pageAPI({_p}, "7", {_back})
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::This_Guild_Is_Full}%" to {_p}
+            else:
+                SG_valueDeleteAPI("Datas.Reserve-Players", "%{_tuuid}%", "guilds/%{_downText}%")
+                send "%{SG::Messages::Prefix}% %{SG::Messages::Player_Has_Guild}%" to {_p}
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to {_p}
+function SG_allyGUI(p: player, a: player, type: text): 
+    set {_puuid} to uuid of {_p}
+    set {_auuid} to uuid of {_a}
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_puuid}%")
+    set {_aGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_auuid}%")
+    {_type} is "gui":
+        open virtual chest inventory with size 3 named "%{SG::Messages::GUIPrefix}%%{SG::Messages::Ally_GUI}%" to {_a}
+        set {_msg} to {SG::Messages::Ally_InviteC_Accept}
+        set {_gName} to SG_checkFile("Datas.Name", "guilds/%{_aGuild}%")
+        replace all "{GUILD}" with "%{_gName}%" in {_msg}
+        set {_x} to 0
+        loop 27 times:
+            {_x} is not 11 or 15:
+                format gui slot {_x} of {_a} with {SG::Item::Menu_Item} named " "
+            add 1 to {_x}
+        format gui slot 11 of {_a} with green clay named "%{_msg}%" with lore "%{SG::Messages::Ally_InviteC_Lore}%" to close then run function SG_aGUI({_p}, {_a}, "accept")
+        format gui slot 15 of {_a} with red clay named "%{SG::Messages::InviteC_Reject}%" to close then run function SG_aGUI({_p}, {_a}, "reject")
+    {_type} is "reject":
+        set {_gName} to SG_checkFile("Datas.Name", "guilds/%{_aGuild}%")
+        set {_msg} to {SG::Messages::Ally_Other_Reject}
+        replace all "{GUILD}" with "%{_gName}%" in {_msg}
+        SG_guildBroadcast("%{_pGuild}%", "%{_msg}%")
+        set {_gName} to SG_checkFile("Datas.Name", "guilds/%{_pGuild}%")
+        set {_msg} to {SG::Messages::Ally_You_Reject}
+        replace all "{GUILD}" with "%{_gName}%" in {_msg}
+        send "%{SG::Messages::Prefix}% %{_msg}%" to {_a}
+    {_type} is "accept":
+        SG_writeFile("Datas.Allies.%{_aGuild}%.Time", "%now%", "guilds/%{_pGuild}%")
+        SG_writeFile("Datas.Allies.%{_aGuild}%.Added-By", "%{_p}%", "guilds/%{_pGuild}%")  
+        SG_writeFile("Datas.Allies.%{_pGuild}%.Time", "%now%", "guilds/%{_aGuild}%")
+        SG_writeFile("Datas.Allies.%{_pGuild}%.Added-By", "%{_a}%", "guilds/%{_aGuild}%")   
+        set {_name} to SG_checkFile("Datas.Name", "guilds/%{_aGuild}%")
+        set {_msg} to {SG::Messages::Added_Ally}
+        replace all "{GUILD}" with "%{_pGuild}%" in {_msg}
+        replace all "{ALLY}" with "%{_name}%" in {_msg}
+        broadcast "%{SG::Messages::Prefix}% %{_msg}%"
+function SG_guildSelectGUI(p: player):
+    set {_uuid} to uuid of {_p}
+    SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%") is "*"
+    open virtual chest inventory with size 3 named "%{SG::Messages::GUIPrefix}%%{SG::Messages::GuildSelectGUI_Header}%" to {_p}   
+    set {_x} to 0
+    loop 27 times:
+        {_x} is not 11 or 13 or 15:
+            format gui slot {_x} of {_p} with {SG::Item::Menu_Item} named " " 
+        add 1 to {_x}
+    format gui slot 11 of {_p} with {SG::Item::GuildInfo_ItemNBT} named "%{SG::Messages::GuildSelectGUIName_1}%" with lore "%{SG::Messages::GuildSelectGUILore_1}%" to close then run function SG_pageAPI({_p}, "5", 0)
+    format gui slot 13 of {_p} with {SG::Item::Friends_ItemNBT} named "%{SG::Messages::Friends_MenuItemName}%" with lore "%{SG::Messages::Friends_MenuItemLore}%" to close then run function SG_pageAPI({_p}, "6", 0)
+    format gui slot 15 of {_p} with {SG::Item::RaceInformation_Head} named "%{SG::Messages::GuildSelectGUIName_2}%" with lore "%{SG::Messages::GuildSelectGUILore_2}%" to close then execute {_p} command "/g help 1"
+
+# 签到系统
+function SG_signGUI(p: player):
+    set {_s::*} to SG_checkFile("Players.Sign-Date", "playerdata/%uuid of {_p}%") split at ";"
+    set {_size} to size of {_s::*}
+    set {_x} to {_s::%{_size}%}
+    set {_date::*} to {_s::%{_size}%} split at "/"
+    {_date::1} is not "%year%":
+        SG_writeFile("Players.Sign-Date", "*", "playerdata/%uuid of {_p}%")
+    {_date::2} is not "%month%":
+        SG_writeFile("Players.Sign-Date", "*", "playerdata/%uuid of {_p}%")
+    open virtual chest inventory with size 6 named "%{SG::Messages::GUIPrefix}%签到界面" to {_p}
+    set {_top} to 0
+    loop 9 times:
+        format gui slot {_top} of {_p} with black stained glass pane
+        add 1 to {_top}
+    set {_bottom} to 45
+    loop 9 times:
+        format gui slot {_bottom} of {_p} with black stained glass pane
+        add 1 to {_bottom}
+    set {_num} to SG_getMaxDay()
+    set {_slot} to 9
+    set {_day} to 1
+    loop {_num} times:
+        {_day} > day:
+            format gui slot {_slot} of {_p} with paper named "&o%month% 月 %{_day}% 日" with lore "&7无法提前签到"
+        {_day} < day:
+            format gui slot {_slot} of {_p} with paper named "&o%month% 月 %{_day}% 日" with lore "&7无法进行补签"
+        {_day} = day:
+            format gui slot {_slot} of {_p} with empty map named "&o%month% 月 %{_day}% 日" with lore "&7点击以签到" to close then run function SG_signManagement(year, month, {_day}, {_p})
+        add 1 to {_slot}
+        add 1 to {_day}
+    SG_checkFile("Players.Sign-Date", "playerdata/%uuid of {_p}%") is not "*"
+    set {_dates::*} to SG_checkFile("Players.Sign-Date", "playerdata/%uuid of {_p}%") split at ";"
+    loop {_dates::*}:
+        set {_date::*} to loop-value split at "/"
+        set {_d} to "%{_date::3}%" parsed as number
+        set {_slot} to {_d} + 8
+        format gui slot {_slot} of {_p} with map named "&o%month% 月 %{_d}% 日" with lore "&7已签到"
+function SG_getMaxDay() :: number:
+    month = 1 or 3 or 5 or 7 or 8 or 10 or 12:
+        set {_num} to 31
+    month = 4 or 6 or 9 or 11:
+        set {_num} to 30
+    set {_aYear} to mod(year, 4)
+    {_aYear} = 0:
+        set {_bYear} to mod(year, 100)
+        {_bYear} != 0
+        month = 2:
+            set {_num} to 29
+        set {_num} to 28
+    set {_cYear} to mod(year, 400)
+    {_cYear} = 0:
+        month = 2:
+            set {_num} to 29
+        set {_num} to 28
+    return {_num}
+function SG_signManagement(y: number, m: number, d: number, p: player):
+    if SG_checkFile("Players.Sign-Date", "playerdata/%uuid of {_p}%") is "*":
+        SG_writeFile("Players.Sign-Date", "%{_y}%/%{_m}%/%{_d}%", "playerdata/%uuid of {_p}%")
+        set {_num} to a random integer between 10 and 500
+        send title "&b&l签到成功!" with subtitle "&7随机获得 %{_num}% 金币" for 1 seconds to {_p}
+        set {_command} to "/eco give {PLAYER} {NUM}"
+        replace all "{PLAYER}" with "%{_p}%" in {_command}
+        replace all "{NUM}" with "%{_num}%" in {_command}
+        execute console command "%{_command}%"
+    else if SG_checkFile("Players.Sign-Date", "playerdata/%uuid of {_p}%") is not "*":
+        set {_s::*} to SG_checkFile("Players.Sign-Date", "playerdata/%uuid of {_p}%") split at ";"
+        set {_w} to SG_checkFile("Players.Sign-Date", "playerdata/%uuid of {_p}%")
+        set {_size} to size of {_s::*}
+        set {_x} to {_s::%{_size}%}
+        set {_z} to "%year%/%month%/%day%"
+        {_x} = {_z}:
+            send title "&c&l签到失败!" with subtitle "&7无法重复签到 明天再来试试吧" for 1 seconds to {_p}
+        {_x} != {_z}:
+            set {_date::*} to {_s::%{_size}%} split at "/"
+            {_date::1} is not "%year%":
+                SG_writeFile("Players.Sign-Date", "*", "playerdata/%uuid of {_p}%")
+            {_date::2} is not "%month%":
+                SG_writeFile("Players.Sign-Date", "*", "playerdata/%uuid of {_p}%")
+            SG_writeFile("Players.Sign-Date", "%{_w}%;%{_y}%/%{_m}%/%{_d}%", "playerdata/%uuid of {_p}%")
+            set {_num} to a random integer between 10 and 500
+            send title "&b&l签到成功!" with subtitle "&7随机获得 %{_num}% 金币" for 1 seconds to {_p}
+            set {_command} to "/eco give {PLAYER} {NUM}"
+            replace all "{PLAYER}" with "%{_p}%" in {_command}
+            replace all "{NUM}" with "%{_num}%" in {_command}
+            execute console command "%{_command}%"
+            set {_t} to SG_getTime(year, month, day, hour, minute, second, "hash") 
+            SG_writeFile("Players.Last-Seen.Hash", "%{_t}%", "playerdata/%uuid of {_p}%")
+            SG_writeFile("Players.Last-Seen.Normal", "%now%", "playerdata/%uuid of {_p}%")
+            SG_checkFile("Players.Guild-Name", "playerdata/%uuid of {_p}%") is not "*":
+                set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%uuid of {_p}%")
+                SG_writeFile("Datas.Last-Active-Time.Normal", "%{_t}%", "guilds/%{_pGuild}%")
+                SG_writeFile("Datas.Last-Active-Time.Hash", "%now%", "guilds/%{_pGuild}%")
+
+# 提示相关
+function SG_warnLog(warnings: text):
+    send "" to console
+    send "&7[&c!&7] %{_warnings}% &7[&c!&7]" to console
+    send "" to console
+function SG_serverLog(logs: text):
+    send "" to console
+    send "&7[&9*&7] %{_logs}% &7[&9*&7]" to console
+    send "" to console
+
+# 通知相关
+function SG_guildBroadcast(guild: text, msg: text):
+    set {_list::*} to SG_yamlList("Datas.Players", "guilds/%{_guild}%")
+    loop {_list::*}:
+        set {_p} to SG_checkFile("Datas.Players.%loop-value%.Username", "guilds/%{_guild}%") parsed as offline player
+        send "%{SG::Messages::Prefix}% %{_msg}%" to {_p}
+
+# 公会相关
+function SG_guildVault(p: player):
+    set {_uuid} to uuid of {_p}
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+    if {_pGuild} is not "*":
+        if SG_rankCheck(uuid of {_p}, "Vault") is true:
+            set {_stLevel} to SG_checkFile("Datas.Buildings.Storage.Level", "guilds/%{_pGuild}%") parsed as integer
+            if {_stLevel} > 0:
+                set {_vaultUser} to SG_checkFile("Datas.Vault-User", "guilds/%{_pGuild}%")
+                if {_vaultUser} is "*":
+                    SG_writeFile("Datas.Vault-User", "%{_p}%", "guilds/%{_pGuild}%")
+                    set {_rows} to SG_checkFile("Guild-Management.Storage-Size.Level-%{_stLevel}%", "config") parsed as integer
+                    create new gui with virtual chest with {_rows} rows named "%{SG::Messages::GUIPrefix}%%{SG::Messages::Guild_Vault_Header}%":
+                        run when close the gui:
+                            SG_writeFile("Datas.Store", "*", "guilds/%{_pGuild}%")
+                            SG_writeFile("Datas.Vault-User", "*", "guilds/%{_pGuild}%")
+                            size of all items of gui-inventory > 0
+                            loop all items in {_p}'s gui-inventory:
+                                add loop-item to {_items::*}
+                            loop {_items::*}:
+                                set {_item} to loop-value
+                                set yaml value "Datas.Store.%loop-index%" from "plugins/SUPERGUILDS/guilds/%{_pGuild}%.yml" to {_item}
+                            save yaml "plugins/SUPERGUILDS/guilds/%{_pGuild}%.yml"
+                    open last gui to {_p}
+                    set {_x} to 0
+                    set {_slot::*} to SG_yamlList("Datas.Store", "guilds/%{_pGuild}%")
+                    size of {_slot::*} > 0
+                    loop {_slot::*}:
+                        set {_item} to yaml value "Datas.Store.%loop-value%" from "plugins/SUPERGUILDS/guilds/%{_pGuild}%.yml"
+                        set slot {_x} of {_p}'s gui-inventory to {_item}
+                        add 1 to {_x}
+                else:
+                    set {_msg} to {SG::Messages::Vault_Using}
+                    replace all "{PLAYER}" with "%{_vaultUser}%" in {_msg}
+                    send "%{SG::Messages::Prefix}% %{_msg}%" to {_p}
+            else:
+                send "%{SG::Messages::Prefix}% %{SG::Messages::You_Cant_Vault}%" to {_p}
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to {_p}
+    else:
+        send "%{SG::Messages::Prefix}% %{SG::Messages::You_Dont_Have_Guild}%" to {_p}
+function SG_donateGUI(p: player, pGuild: text):
+    set {_uuid} to uuid of {_p}
+    create new gui with virtual chest named "%{SG::Messages::GUIPrefix}%%{SG::Messages::Menu_Donate_GUI}%":
+        run when close the gui:
+            size of all items of gui-inventory > 0
+            set {_typeItem.Wood} to log
+            set {_typeItem.Stone} to stone
+            set {_typeItem.Iron} to iron ingot
+            set {_typeItem.Gold} to gold ingot
+            set {_typeItem.Diamond} to diamond
+            set {_typeItem.Wool} to wool
+
+            loop all items of gui-inventory:
+                type of loop-item is not log or stone or iron ingot or gold ingot or diamond or wool
+                if {_p} has enough space for loop-item:
+                    give {_p} loop-item
+                else:
+                    drop loop-item at location of {_p}
+        
+            add "oak log" and "spruce log" and "birch log" and "jungle log" and "acacia log" and "dark oak log" to {_typeWood::*}
+            set {_maxR.Wood} to SG_checkFile("Datas.Resources.Wood.Max", "guilds/%{_pGuild}%") parsed as integer
+            set {_totalWood} to 0
+            set {_totalWoodBack} to 0
+            loop {_typeWood::*}:
+                set {_curR.Wood} to SG_checkFile("Datas.Resources.Wood.Has", "guilds/%{_pGuild}%") parsed as integer
+                set {_material} to loop-value parsed as material
+                set {_num} to amount of {_material} in gui-inventory
+                set {_newR.Wood} to {_curR.Wood} + {_num}
+                {_newR.Wood} <= {_maxR.Wood}:
+                    SG_valueAddAPI("Datas.Resources.Wood.Has", {_num}, "guilds/%{_pGuild}%")
+                    SG_valueAddAPI("Datas.Players.%{_uuid}%.Donated-Resource.Wood", {_num}, "guilds/%{_pGuild}%")
+                    SG_valueAddAPI("Players.Donated-Resource.Wood", {_num}, "playerdata/%{_uuid}%")
+                    add {_num} to {_totalWood}
+                {_newR.Wood} > {_maxR.Wood}:
+                    set {_oveR.Wood} to {_newR.Wood} - {_maxR.Wood}
+                    set {_num} to {_num} - {_oveR.Wood}
+                    add {_oveR.Wood} to {_totalWoodBack}
+                    SG_valueAddAPI("Datas.Resources.Wood.Has", {_num}, "guilds/%{_pGuild}%")
+                    SG_valueAddAPI("Datas.Players.%{_uuid}%.Donated-Resource.Wood", {_num}, "guilds/%{_pGuild}%")
+                    SG_valueAddAPI("Players.Donated-Resource.Wood", {_num}, "playerdata/%{_uuid}%")
+                    while {_oveR.Wood} >= 64:
+                        drop 64 of {_material} at location of {_p}
+                        remove 64 from {_oveR.Wood}
+                    {_oveR.Wood} < 64:
+                        drop {_oveR.Wood} of {_material} at location of {_p}
+            {_totalWood} > 0:
+                set {_r} to SG_checkFile("Datas.Players.%{_uuid}%.Rank", "guilds/%{_pGuild}%")
+                set {_msg} to {SG::Messages::Player_Donated} 
+                replace all "{RANK}" with "%{SG::Messages::Rank_%{_r}%}%" in {_msg}
+                replace all "{PLAYER}" with "%{_p}%" in {_msg} 
+                replace all "{NUMBER}" with "%{_totalWood}%" in {_msg}
+                replace all "{RESOURCE}" with "%{SG::Messages::Resource_Wood}%" in {_msg}
+                SG_guildBroadcast({_pGuild}, "%{_msg}%")
+            {_totalWoodBack} > 0:
+                set {_msg} to {SG::Messages::No_Storage}
+                replace all "{NUMBER}" with "%{_totalWoodBack}%" in {_msg}
+                replace all "{RESOURCE}" with "%{SG::Messages::Resource_Wood}%" in {_msg}
+                send "%{SG::Messages::Prefix}% %{_msg}%" to {_p}
+
+            add "white wool block" and "orange wool block" and "magenta wool block" and "light blue wool block" and "yellow wool block" and "light green wool block" and "black wool block" and "pink wool block" and "green wool block" and "red wool block" and "cyan wool block" and "gray wool block" and "light gray wool block" and "purple wool block" and "blue wool block" and "brown wool block" to {_typeWool::*}
+            set {_maxR.Wool} to SG_checkFile("Datas.Resources.Wool.Max", "guilds/%{_pGuild}%") parsed as integer
+            set {_totalWool} to 0
+            set {_totalWoolBack} to 0
+            loop {_typeWool::*}:
+                set {_curR.Wool} to SG_checkFile("Datas.Resources.Wool.Has", "guilds/%{_pGuild}%") parsed as integer
+                set {_material} to loop-value parsed as material
+                set {_num} to amount of {_material} in gui-inventory
+                set {_newR.Wool} to {_curR.Wool} + {_num}
+                {_newR.Wool} <= {_maxR.Wool}:
+                    SG_valueAddAPI("Datas.Resources.Wool.Has", {_num}, "guilds/%{_pGuild}%")
+                    SG_valueAddAPI("Datas.Players.%{_uuid}%.Donated-Resource.Wool", {_num}, "guilds/%{_pGuild}%")
+                    SG_valueAddAPI("Players.Donated-Resource.Wool", {_num}, "playerdata/%{_uuid}%")
+                    add {_num} to {_totalWool}
+                {_newR.Wool} > {_maxR.Wool}:
+                    set {_oveR.Wool} to {_newR.Wool} - {_maxR.Wool}
+                    set {_num} to {_num} - {_oveR.Wool}
+                    add {_oveR.Wool} to {_totalWoolBack}
+                    SG_valueAddAPI("Datas.Resources.Wool.Has", {_num}, "guilds/%{_pGuild}%")
+                    SG_valueAddAPI("Datas.Players.%{_uuid}%.Donated-Resource.Wool", {_num}, "guilds/%{_pGuild}%")
+                    SG_valueAddAPI("Players.Donated-Resource.Wool", {_num}, "playerdata/%{_uuid}%")
+                    add {_num} to {_totalWool}
+                    while {_oveR.Wool} >= 64:
+                        drop 64 of {_material} at location of {_p}
+                        remove 64 from {_oveR.Wool}
+                    {_oveR.Wool} < 64:
+                        drop {_oveR.Wool} of {_material} at location of {_p}
+            {_totalWool} > 0:
+                set {_r} to SG_checkFile("Datas.Players.%{_uuid}%.Rank", "guilds/%{_pGuild}%")
+                set {_msg} to {SG::Messages::Player_Donated} 
+                replace all "{RANK}" with "%{SG::Messages::Rank_%{_r}%}%" in {_msg}
+                replace all "{PLAYER}" with "%{_p}%" in {_msg} 
+                replace all "{NUMBER}" with "%{_totalWool}%" in {_msg}
+                replace all "{RESOURCE}" with "%{SG::Messages::Resource_Wool}%" in {_msg}
+                SG_guildBroadcast({_pGuild}, "%{_msg}%")
+            {_totalWoolBack} > 0:
+                set {_msg} to {SG::Messages::No_Storage}
+                replace all "{NUMBER}" with "%{_totalWoolBack}%" in {_msg}
+                replace all "{RESOURCE}" with "%{SG::Messages::Resource_Wool}%" in {_msg}
+                send "%{SG::Messages::Prefix}% %{_msg}%" to {_p}
+
+            set {_typeItem.Iron} to iron ingot
+            set {_typeItem.Gold} to gold ingot
+            set {_typeItem.Diamond} to diamond
+            set {_typeItem.Stone} to stone
+            set {_donated.Iron} to amount of {_typeItem.Iron} in gui-inventory
+            set {_donated.Gold} to amount of {_typeItem.Gold} in gui-inventory
+            set {_donated.Diamond} to amount of {_typeItem.Diamond} in gui-inventory
+            set {_donated.Stone} to amount of {_typeItem.Stone} in gui-inventory
+
+            loop "Stone" and "Iron" and "Gold" and "Diamond":  
+                set {_curR} to SG_checkFile("Datas.Resources.%loop-value%.Has", "guilds/%{_pGuild}%") parsed as integer
+                set {_maxR} to SG_checkFile("Datas.Resources.%loop-value%.Max", "guilds/%{_pGuild}%") parsed as integer
+                set {_newR} to {_curR}+{_donated.%loop-value%}
+                {_newR} <= {_maxR}:
+                    SG_valueAddAPI("Datas.Resources.%loop-value%.Has", {_donated.%loop-value%}, "guilds/%{_pGuild}%")
+                    SG_valueAddAPI("Datas.Players.%{_uuid}%.Donated-Resource.%loop-value%", {_donated.%loop-value%}, "guilds/%{_pGuild}%")
+                    SG_valueAddAPI("Players.Donated-Resource.%loop-value%", {_donated.%loop-value%}, "playerdata/%{_uuid}%")
+                    set {_stoR.%loop-value%} to {_donated.%loop-value%}
+                {_newR} > {_maxR}:
+                    set {_stoR.%loop-value%} to {_maxR}-{_curR}
+                    set {_bacR.%loop-value%} to {_donated.%loop-value%}-{_stoR.%loop-value%}
+                    {_stoR.%loop-value%} > 0:
+                        SG_valueAddAPI("Datas.Resources.%loop-value%.Has", {_stoR.%loop-value%}, "guilds/%{_pGuild}%")
+                        SG_valueAddAPI("Datas.Players.%{_uuid}%.Donated-Resource.%loop-value%", {_stoR.%loop-value%}, "guilds/%{_pGuild}%")
+                        SG_valueAddAPI("Players.Donated-Resource.%loop-value%", {_stoR.%loop-value%}, "playerdata/%{_uuid}%")
+                        while {_bacR.%loop-value%} >= 64:
+                            drop 64 of {_typeItem.%loop-value%} at location of {_p}
+                            remove 64 from {_bacR.%loop-value%}
+                        {_bacR.%loop-value%} < 64:
+                            drop {_bacR.%loop-value%} of {_typeItem.%loop-value%} at location of {_p}
+                    {_stoR.%loop-value%} = 0:
+                        set {_msg} to {SG::Messages::No_Storage}
+                        replace all "{NUMBER}" with "%{_donated.%loop-value%}%" in {_msg}
+                        replace all "{RESOURCE}" with "%{SG::Messages::Resource_%loop-value%}%" in {_msg}
+                        send "%{SG::Messages::Prefix}% %{_msg}%" to {_p}
+                        while {_bacR.%loop-value%} >= 64:
+                            drop 64 of {_typeItem.%loop-value%} at location of {_p}
+                            remove 64 from {_bacR.%loop-value%}
+                        {_bacR.%loop-value%} < 64:
+                            drop {_bacR.%loop-value%} of {_typeItem.%loop-value%} at location of {_p}
+                {_stoR.%loop-value%} > 0
+                set {_r} to SG_checkFile("Datas.Players.%{_uuid}%.Rank", "guilds/%{_pGuild}%")
+                set {_msg} to {SG::Messages::Player_Donated} 
+                replace all "{RANK}" with "%{SG::Messages::Rank_%{_r}%}%" in {_msg}
+                replace all "{PLAYER}" with "%{_p}%" in {_msg} 
+                replace all "{NUMBER}" with "%{_donated.%loop-value%}%" in {_msg}
+                replace all "{RESOURCE}" with "%{SG::Messages::Resource_%loop-value%}%" in {_msg}
+                SG_guildBroadcast({_pGuild}, "%{_msg}%")
+        open last gui to {_p}
+function SG_guildRank(p: player, tuuid: text, rank: text, permission: text):
+    set {_puuid} to uuid of {_p}
+    if "%{_puuid}%" is not "%{_tuuid}%":
+        set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_puuid}%") 
+        set {_t} to SG_checkFile("Datas.Players.%{_tuuid}%.Username", "guilds/%{_pGuild}%")
+        set {_rankP} to SG_checkFile("Datas.Players.%{_puuid}%.Rank", "guilds/%{_pGuild}%")
+        set {_rankT} to SG_checkFile("Datas.Players.%{_tuuid}%.Rank", "guilds/%{_pGuild}%")
+        set {_pLevel} to SG_checkFile("Guild-Management.Ranks.%{_rankP}%-Permission-Level", "config") parsed as integer
+        set {_tLevel} to SG_checkFile("Guild-Management.Ranks.%{_rankT}%-Permission-Level", "config") parsed as integer
+        if SG_rankCheck({_puuid}, "Rank") is true:
+            {_rank} is "*":
+                if {_pLevel} > {_tLevel}:
+                    {_permission} is not "*"
+                    set {_permT} to SG_checkFile("Datas.Players.%{_tuuid}%.Permissions", "guilds/%{_pGuild}%")
+                    send "1" to {_p}
+                    {_permT} is "*":
+                        set {_permT} to SG_checkFile("Guild-Management.Ranks.%{_rankT}%-Permissions", "config")
+                        SG_writeFile("Datas.Players.%{_tuuid}%.Permissions", "%{_permT}%", "guilds/%{_pGuild}%") 
+                    if SG_rankCheck({_tuuid}, "%{_permission}%") is true: 
+                        if {_permT} is "*":
+                            set {_son} to ",%{_permission}%"    
+                        else if {_permT} is not set:
+                            set {_son} to ",%{_permission}%"    
+                        else:
+                            set {_son} to "%{_permT}%"
+                            "%{_son}%" doesn't contain ",":
+                                set {_son} to ",%{_son}%"
+                        "%{_son}%" contains ",%{_permission}%" or "%{_permission}%,":
+                            replace all ",%{_permission}%" and "%{_permission}%," with "" in {_son}
+                        SG_writeFile("Datas.Players.%{_tuuid}%.Permissions", "%{_son}%", "guilds/%{_pGuild}%")
+                        send "2" to {_p}
+                    else:
+                        if {_permT} is "*":
+                            set {_son} to "%{_permission}%" 
+                        else if {_permT} is not set:
+                            set {_son} to "%{_permission}%" 
+                        else:
+                            set {_son} to "%{_permT}%,%{_permission}%"  
+                        SG_writeFile("Datas.Players.%{_tuuid}%.Permissions", "%{_son}%", "guilds/%{_pGuild}%")
+                        send "3" to {_p}
+                    SG_rankGUI({_p}, {_tuuid})
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::Rank_Wrong}%" to {_p}         
+            {_rank} is not "*":
+                set {_rLevel} to SG_checkFile("Guild-Management.Ranks.%{_rank}%-Permission-Level", "config") parsed as integer
+                {_rank} is "Leader":
+                    if {_rankP} is "Leader":
+                        remove 1 from {_rLevel}
+                        SG_writeFile("Datas.Players.%{_puuid}%.Rank", "Member", "guilds/%{_pGuild}%")
+                        SG_writeFile("Datas.Players.%{_puuid}%.Permissions", "*", "guilds/%{_pGuild}%")
+                        SG_writeFile("Datas.Leader", "%{_t}%", "guilds/%{_pGuild}%") 
+                    else:
+                        send "%{SG::Messages::Prefix}% %{SG::Messages::You_Arent_Leader}%" to {_p}
+                {_pLevel} > {_tLevel}
+                if {_pLevel} > {_rLevel}:
+                    set {_permT} to SG_checkFile("Guild-Management.Ranks.%{_rank}%-Permissions", "config")
+                    SG_writeFile("Datas.Players.%{_tuuid}%.Rank", "%{_rank}%", "guilds/%{_pGuild}%")
+                    SG_writeFile("Datas.Players.%{_tuuid}%.Permissions", "%{_permT}%", "guilds/%{_pGuild}%") 
+                    set {_message} to {SG::Messages::Ranked_Player}
+                    replace all "{NEWRANKCHANGEP}" with "%{SG::Messages::Rank_%{_rank}%}%" in {_message}
+                    replace all "{RANKPLAYER}" with "%{SG::Messages::Rank_%{_rankP}%}%" in {_message}
+                    replace all "{OLDRANKCHANGEP}" with "%{SG::Messages::Rank_%{_rankT}%}%" in {_message}
+                    replace all "{CHANGEP}" with "%{_t}%" in {_message}
+                    replace all "{PLAYER}" with "%{_p}%" in {_message}
+                    SG_guildBroadcast({_pGuild},"%{_message}%")
+                    set {_msg} to {SG::Messages::Rank_Changed}
+                else:
+                    send "%{SG::Messages::Prefix}% %{SG::Messages::Rank_Wrong}%" to {_p}
+        else:
+            send "%{SG::Messages::Prefix}% %{SG::Messages::No_Rank}%" to {_p}   
+    else:
+        send "%{SG::Messages::Prefix}% %{SG::Messages::Rank_Yourself}%" to {_p}
+function SG_guildEmblemGUI(p: player):
+    set {_uuid} to uuid of {_p}
+    set {_design} to SG_checkFile("Players.Emblem-Design", "playerdata/%{_uuid}%")
+    set {_playerColor} to SG_checkFile("Players.Selected-Color", "playerdata/%{_uuid}%")
+    {_design} is "*":
+        set {_design} to "7"
+        loop 64 times:
+            set {_design} to "%{_design}%;7"
+    {_playerColor} is "*":
+        set {_playerColor} to "0"
+    set {_unicodes::*} to {_design} split at ";"
+    set {_book} to a new written book
+    add text component coloured "%{SG::Messages::Emblem_Menu}%" to {_components::*}
+    add text component nl to {_components::*}
+    set {_no} to 0
+    loop 8 times:   
+        loop 8 times:
+            add 1 to {_no}
+            clear {_jsonText}
+            set {_msg} to coloured "&%{_unicodes::%{_no}%}%█"
+            {_no} is 9 or 17 or 25 or 33 or 41 or 49 or 57 or 65:   
+                set {_component} to a new text component with nl
+                add {_component} to {_components::*}
+            {_no} is 1 or 9 or 17 or 25 or 33 or 41 or 49 or 57:    
+                set {_msg} to coloured "     &%{_unicodes::%{_no}%}%█"
+            set {_component} to a new text component with coloured "%{_msg}%"
+            add click event with action RUN_COMMAND with execute "/g emblem Select %{_no}%" to text component {_component}
+            add hover event with action SHOW_TEXT with text coloured "&%{_playerColor}%■ %{SG::Messages::Click_To_Dye_Here}% &f[##%{_no}%]" to text component {_component}
+            add {_component} to {_components::*}
+    add new text component with "%nl%%nl%" to {_components::*}
+    set {_no} to 0
+    set {_colors::*} to "&0", "&1", "&2", "&3", "&4", "&5", "&6", "&7", "&8", "&9", "&a", "&b", "&c", "&d", "&e" and "&f"
+    loop {_colors::*}:
+        set {_msg} to coloured "%loop-value%█"
+        {_no} is 0 or 8:
+            set {_msg} to coloured "     %loop-value%█"
+        {_no} is 8 or 16:   
+            set {_component} to a new text component with nl
+            add {_component} to {_components::*}
+        set {_component} to a new text component with coloured "%{_msg}%"
+        add click event with action RUN_COMMAND with execute "/g emblem Color %{_no}%" to text component {_component}
+        add hover event with action SHOW_TEXT with text "%loop-value%■ %{SG::Messages::Click_To_Select_Color}%" to text component {_component}
+        add 1 to {_no}
+        add {_component} to {_components::*}
+    add new text component with "%nl%%nl%" to {_components::*}
+    set {_types::*} to "Save", "Reset" and "Use"
+    loop {_types::*}:
+        set {_component} to a new text component with coloured "    %{SG::Messages::%loop-value%_Emblem_Button}%"
+        add click event with action RUN_COMMAND with execute "/g emblem %loop-value%" to text component {_component}
+        add hover event with action SHOW_TEXT with text "%{SG::Messages::%loop-value%_Emblem_Lore}%" to text component {_component}
+        add {_component} to {_components::*}
+    add text component {_components::*} to book {_book}
+    open book {_book} to {_p}
+function SG_guildShowAllClaims(p: player):
+    set {_uuid} to uuid of {_p}
+    set {_pGuild} to SG_checkFile("Players.Guild-Name", "playerdata/%{_uuid}%")
+    {_pGuild} is not "*"
+    set {_number} to SG_checkFile("General.Show-Claims-Time", "config") parsed as number
+    set {_t} to SG_getTime(year, month, day, hour, minute, second+{_number}, "hash")
+    SG_writeFile("Datas.Show-Claims-Time", "%{_t}%", "guilds/%{_pGuild}%")
+    set {_claims::*} to SG_yamlList("Datas.Claims", "guilds/%{_pGuild}%")
+    if size of {_claims::*} is greater than 0:
+        loop {_claims::*}:
+            set {_location::*} to SG_checkFile("Datas.Claims.%loop-value%", "guilds/%{_pGuild}%") split at ";"
+            set {_xLoc} to {_location::1} parsed as number
+            set {_yLoc} to {_location::2} parsed as number
+            set {_zLoc} to {_location::3} parsed as number
+            set {_worldLoc} to {_location::4} parsed as world
+            SG_chunkMiddle({_p}, {_xLoc}, {_yLoc}, {_zLoc}, {_worldLoc}, "all")    
+        send "%{SG::Messages::Prefix}% %{SG::Messages::Showing_Claims}%" to {_p}
+    else:
+        send "%{SG::Messages::Prefix}% %{SG::Messages::No_Claims}%" to {_p} 
